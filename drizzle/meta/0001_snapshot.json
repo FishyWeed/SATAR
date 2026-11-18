@@ -1,0 +1,487 @@
+{
+  "id": "6fb51fc0-3a1f-4cc0-b75e-c0bfed0496d8",
+  "prevId": "2657bf94-08b8-415b-8aac-107b5dc942b2",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.audit_log_t": {
+      "name": "audit_log_t",
+      "schema": "",
+      "columns": {
+        "aud_id": {
+          "name": "aud_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "name": "audit_log_t_aud_id_seq",
+            "increment": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "startWith": "1",
+            "cache": "1",
+            "cycle": false,
+            "schema": "public",
+            "type": "always"
+          }
+        },
+        "usr_id": {
+          "name": "usr_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tol_id": {
+          "name": "tol_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "aud_action": {
+          "name": "aud_action",
+          "type": "varchar(30)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "aud_reason": {
+          "name": "aud_reason",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "aud_time": {
+          "name": "aud_time",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "audit_log_t_usr_id_user_t_usr_id_fk": {
+          "name": "audit_log_t_usr_id_user_t_usr_id_fk",
+          "tableFrom": "audit_log_t",
+          "columnsFrom": [
+            "usr_id"
+          ],
+          "tableTo": "user_t",
+          "columnsTo": [
+            "usr_id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        },
+        "audit_log_t_tol_id_tool_t_tol_id_fk": {
+          "name": "audit_log_t_tol_id_tool_t_tol_id_fk",
+          "tableFrom": "audit_log_t",
+          "columnsFrom": [
+            "tol_id"
+          ],
+          "tableTo": "tool_t",
+          "columnsTo": [
+            "tol_id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.category_t": {
+      "name": "category_t",
+      "schema": "",
+      "columns": {
+        "cat_id": {
+          "name": "cat_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "name": "category_t_cat_id_seq",
+            "increment": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "startWith": "1",
+            "cache": "1",
+            "cycle": false,
+            "schema": "public",
+            "type": "always"
+          }
+        },
+        "cat_name": {
+          "name": "cat_name",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "category_t_cat_name_unique": {
+          "name": "category_t_cat_name_unique",
+          "columns": [
+            "cat_name"
+          ],
+          "nullsNotDistinct": false
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.department_t": {
+      "name": "department_t",
+      "schema": "",
+      "columns": {
+        "dep_id": {
+          "name": "dep_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "name": "department_t_dep_id_seq",
+            "increment": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "startWith": "1",
+            "cache": "1",
+            "cycle": false,
+            "schema": "public",
+            "type": "always"
+          }
+        },
+        "dep_name": {
+          "name": "dep_name",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "department_t_dep_name_unique": {
+          "name": "department_t_dep_name_unique",
+          "columns": [
+            "dep_name"
+          ],
+          "nullsNotDistinct": false
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.request_t": {
+      "name": "request_t",
+      "schema": "",
+      "columns": {
+        "req_id": {
+          "name": "req_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "name": "request_t_req_id_seq",
+            "increment": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "startWith": "1",
+            "cache": "1",
+            "cycle": false,
+            "schema": "public",
+            "type": "always"
+          }
+        },
+        "usr_id": {
+          "name": "usr_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tol_id": {
+          "name": "tol_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "req_purpose": {
+          "name": "req_purpose",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "req_data_class": {
+          "name": "req_data_class",
+          "type": "varchar(12)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "req_status": {
+          "name": "req_status",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'Pending Manager'"
+        },
+        "req_mgr_note": {
+          "name": "req_mgr_note",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "req_rev_note": {
+          "name": "req_rev_note",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "req_date": {
+          "name": "req_date",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "request_t_usr_id_user_t_usr_id_fk": {
+          "name": "request_t_usr_id_user_t_usr_id_fk",
+          "tableFrom": "request_t",
+          "columnsFrom": [
+            "usr_id"
+          ],
+          "tableTo": "user_t",
+          "columnsTo": [
+            "usr_id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        },
+        "request_t_tol_id_tool_t_tol_id_fk": {
+          "name": "request_t_tol_id_tool_t_tol_id_fk",
+          "tableFrom": "request_t",
+          "columnsFrom": [
+            "tol_id"
+          ],
+          "tableTo": "tool_t",
+          "columnsTo": [
+            "tol_id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.tool_t": {
+      "name": "tool_t",
+      "schema": "",
+      "columns": {
+        "tol_id": {
+          "name": "tol_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "name": "tool_t_tol_id_seq",
+            "increment": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "startWith": "1",
+            "cache": "1",
+            "cycle": false,
+            "schema": "public",
+            "type": "always"
+          }
+        },
+        "tol_name": {
+          "name": "tol_name",
+          "type": "varchar(60)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tol_vendor": {
+          "name": "tol_vendor",
+          "type": "varchar(60)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tol_url": {
+          "name": "tol_url",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cat_id": {
+          "name": "cat_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tol_status": {
+          "name": "tol_status",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'Pending'"
+        },
+        "tol_risk": {
+          "name": "tol_risk",
+          "type": "varchar(6)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tol_data_class": {
+          "name": "tol_data_class",
+          "type": "varchar(12)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tol_conditions": {
+          "name": "tol_conditions",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tol_review_date": {
+          "name": "tol_review_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "tool_t_cat_id_category_t_cat_id_fk": {
+          "name": "tool_t_cat_id_category_t_cat_id_fk",
+          "tableFrom": "tool_t",
+          "columnsFrom": [
+            "cat_id"
+          ],
+          "tableTo": "category_t",
+          "columnsTo": [
+            "cat_id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "tool_t_tol_name_unique": {
+          "name": "tool_t_tol_name_unique",
+          "columns": [
+            "tol_name"
+          ],
+          "nullsNotDistinct": false
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.user_t": {
+      "name": "user_t",
+      "schema": "",
+      "columns": {
+        "usr_id": {
+          "name": "usr_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "usr_f_name": {
+          "name": "usr_f_name",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "usr_l_name": {
+          "name": "usr_l_name",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "usr_email": {
+          "name": "usr_email",
+          "type": "varchar(60)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "usr_role": {
+          "name": "usr_role",
+          "type": "varchar(15)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "dep_id": {
+          "name": "dep_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "usr_active": {
+          "name": "usr_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "user_t_dep_id_department_t_dep_id_fk": {
+          "name": "user_t_dep_id_department_t_dep_id_fk",
+          "tableFrom": "user_t",
+          "columnsFrom": [
+            "dep_id"
+          ],
+          "tableTo": "department_t",
+          "columnsTo": [
+            "dep_id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "user_t_usr_email_unique": {
+          "name": "user_t_usr_email_unique",
+          "columns": [
+            "usr_email"
+          ],
+          "nullsNotDistinct": false
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "views": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

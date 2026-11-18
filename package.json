@@ -1,0 +1,38 @@
+{
+	"name": "satar",
+	"version": "0.0.1",
+	"private": true,
+	"type": "module",
+	"imports": {
+		"#lib": "./src/lib/index.js",
+		"#lib/*": "./src/lib/*"
+	},
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"preview": "vite preview",
+		"prepare": "svelte-kit sync || echo ''",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"db:generate": "drizzle-kit generate",
+		"db:migrate": "drizzle-kit migrate",
+		"first-admin": "node scripts/first-admin.mjs",
+		"seed-test": "node scripts/seed-test.mjs"
+	},
+	"devDependencies": {
+		"@sveltejs/adapter-netlify": "^7.0.1",
+		"@sveltejs/kit": "^3.2.0",
+		"@sveltejs/vite-plugin-svelte": "^7.3.1",
+		"drizzle-kit": "^0.31.11",
+		"svelte": "^5.57.3",
+		"svelte-check": "^4.7.8",
+		"typescript": "^6.0.3",
+		"vite": "^8.3.8"
+	},
+	"dependencies": {
+		"@supabase/ssr": "^0.12.7",
+		"@supabase/supabase-js": "^2.119.0",
+		"drizzle-orm": "^0.45.4",
+		"postgres": "^4.1.1"
+	}
+}

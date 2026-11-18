@@ -1,0 +1,45 @@
+/* Plain black-and-white look of the wireframes, readable on a phone, a tablet and a desktop. */
+:root { --ink: #1a1a1a; --soft: #666; --line: #bbb; --fill: #eee; font-family: Arial, Helvetica, sans-serif; color: var(--ink); }
+* { box-sizing: border-box; }
+body { margin: 0; background: #fff; }
+a { color: var(--ink); }
+.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1.5rem; padding: 0.75rem 1.25rem; background: var(--fill); border-bottom: 1px solid var(--line); }
+.brand { font-weight: 700; font-size: 1.15rem; text-decoration: none; }
+.bar nav { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; }
+.bar nav a { text-decoration: none; }
+.bar nav a:hover { text-decoration: underline; }
+.who { margin-left: auto; color: var(--soft); font-size: 0.85rem; }
+main { max-width: 960px; margin: 0 auto; padding: 1.25rem; }
+h1 { font-size: 1.4rem; margin: 0.5rem 0 1rem; }
+form.stack { display: grid; gap: 0.75rem; max-width: 560px; }
+label { display: grid; gap: 0.25rem; font-size: 0.9rem; }
+input, select, textarea, button { font: inherit; padding: 0.45rem 0.6rem; border: 1px solid #888; border-radius: 3px; background: #fff; }
+textarea { min-height: 5rem; }
+button, .button { background: var(--fill); font-weight: 700; cursor: pointer; text-decoration: none; display: inline-block; border: 1px solid #888; border-radius: 3px; padding: 0.45rem 0.9rem; }
+.row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: end; }
+.radio { display: flex; gap: 1rem; align-items: center; }
+.radio label { display: flex; gap: 0.35rem; align-items: center; }
+.msg { padding: 0.6rem 0.8rem; border: 1px solid var(--ink); background: var(--fill); margin: 0 0 1rem; }
+.msg.error { border-style: dashed; }
+.muted { color: var(--soft); }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem; }
+.card { border: 1px solid var(--ink); border-radius: 4px; padding: 0.75rem; }
+.card b { display: block; font-size: 1.8rem; }
+.table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+th, td { border: 1px solid var(--line); padding: 0.4rem 0.5rem; text-align: left; vertical-align: top; }
+th { background: var(--fill); }
+dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.35rem 1rem; }
+dt { font-weight: 700; }
+dd { margin: 0; }
+.bars div { display: flex; gap: 0.5rem; align-items: center; margin: 0.3rem 0; }
+.bars span:first-child { width: 5rem; }
+.bars span.bar-fill { background: #888; height: 1rem; }
+.steps { display: flex; flex-wrap: wrap; gap: 0.5rem; list-style: none; padding: 0; }
+.steps li { border: 1px solid var(--line); border-radius: 1rem; padding: 0.2rem 0.75rem; }
+.steps li.done { background: var(--ink); color: #fff; }
+.report-head { text-align: center; }
+@media print {
+	.bar, .no-print { display: none !important; }
+	main { max-width: none; padding: 0; }
+}
