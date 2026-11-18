@@ -65,6 +65,12 @@ try {
 			on conflict (usr_id) do update set org_id = excluded.org_id, usr_role = excluded.usr_role, dep_id = excluded.dep_id, usr_active = true`;
 		accounts[email.split('@')[0]] = { email, password };
 	}
+	// The Welcome unit test creates "Newbie Org"; the newcomers are reset above, so the organization can go.
+	const leftover = sql`select org_id from organization_t where org_name = 'Newbie Org'`;
+	await sql`delete from invite_t where org_id in (${leftover})`;
+	await sql`delete from category_t where org_id in (${leftover})`;
+	await sql`delete from department_t where org_id in (${leftover})`;
+	await sql`delete from organization_t where org_name = 'Newbie Org'`;
 	writeFileSync(out, JSON.stringify(accounts, null, 2));
 	console.log(`Test data added. Test passwords written to ${out}`);
 } finally {

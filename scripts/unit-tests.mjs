@@ -218,32 +218,35 @@ record(22, [(await admin.go('/admin/catalogue?/add', { name: 'A' })).msg, (await
 	record(24, [(await admin.go('/admin/reports?type=&from=&to=')).msg, (await admin.go('/admin/reports?type=register&from=2026-11-10&to=2026-11-01')).msg,
 		/<h2>AI Tool Register Report<\/h2>/.test(r.html) ? 'The AI Tool Register Report appears' : 'No report']);
 }
-// 26 Sign Up: only the checks before Supabase sends an email (no email is sent in the tests)
+// 26 Landing page and 28 Check your email (record numbers = screen numbers of the report)
+record(26, [(await new Session().go('/')).h1.startsWith('Know which AI tools') ? 'The landing page appears with Get started and Sign in' : 'Wrong page', appears(await emp1.go('/'))]);
+record(28, [(await new Session().go('/signup/check-email?email=gopal%40example.com')).html.includes('gopal@example.com') ? 'The Check your email page appears with the email address' : 'Wrong page']);
+// 27 Sign Up: only the checks before Supabase sends an email (no email is sent in the tests)
 {
 	const s = new Session();
 	const up = (first, email, password, confirm) => s.go('/signup', { first, last: first ? 'Test' : '', email, password, confirm });
-	record(26, [(await up('', '', '', '')).msg, (await up('Gopal', A.newbie.email, 'NewPass#2027', 'NewPass#2027')).msg, (await up('Ivan', 'ivan@satar.test', 'NewPass#2027', 'NewPass#2028')).msg]);
+	record(27, [(await up('', '', '', '')).msg, (await up('Gopal', A.newbie.email, 'NewPass#2027', 'NewPass#2027')).msg, (await up('Ivan', 'ivan@satar.test', 'NewPass#2027', 'NewPass#2028')).msg]);
 }
-// 27 Welcome and Create organization (newbie creates "Newbie Org")
+// 29 Welcome and Create organization (newbie creates "Newbie Org")
 {
 	const nb = await new Session().login('newbie');
 	const w = await nb.go('/welcome');
 	const bad = await nb.go('/welcome?/create', { orgName: 'A', depName: 'IT' });
 	const ok = await nb.go('/welcome?/create', { orgName: 'Newbie Org', depName: 'IT' });
 	const cats = (await sql`select count(*)::int n from category_t c join organization_t o using (org_id) where o.org_name = 'Newbie Org'`)[0].n;
-	record(27, [w.h1 === 'Welcome, Gopal' ? 'The Welcome page appears with both choices' : appears(w), appears(await emp1.go('/welcome')), bad.msg,
+	record(29, [w.h1 === 'Welcome, Gopal' ? 'The Welcome page appears with both choices' : appears(w), appears(await emp1.go('/welcome')), bad.msg,
 		ok.path === '/admin' && cats === 4 ? 'The organization is created with 4 starter categories; the Administrator Dashboard page appears' : `${appears(ok)} (${cats} categories)`]);
 }
-// 28 Invite user (the Administrator of Noctua Demo)
+// 19 (more) Invite user (the Administrator of Noctua Demo)
 const [fin] = await sql`select dep_id from department_t where org_id = ${demo} and dep_name = 'Finance'`;
 const inviteLink = async (role, email = '') => (await admin.go('/admin/users?/invite', { role, dep: fin.dep_id, email })).html.match(/<code>[^<]*\/join\/([0-9a-f]+)<\/code>/)?.[1];
 {
 	const blank = await admin.go('/admin/users?/invite', { role: '', dep: '', email: '' });
 	const code = await inviteLink('Employee');
 	const open = await admin.go('/admin/users');
-	record(28, [blank.msg, code ? 'Invite created; the link appears with a Copy button' : 'No link', open.html.includes(code ?? 'none') ? 'The invite appears in Open invites' : 'Not listed']);
+	record(19, [...results[19], blank.msg, code ? 'Invite created; the link appears with a Copy button' : 'No link', open.html.includes(code ?? 'none') ? 'The invite appears in Open invites' : 'Not listed']);
 }
-// 29 Join with an invite link
+// 30 Join with an invite link
 {
 	const code = await inviteLink('Employee'), locked = await inviteLink('Reviewer', 'someone@satar.test');
 	const visitor = await new Session().go(`/join/${code}`);
@@ -256,24 +259,24 @@ const inviteLink = async (role, email = '') => (await admin.go('/admin/users?/in
 	await sql`update invite_t set inv_expires = now() - interval '1 day' where inv_code = ${late}`;
 	const expired = await new Session().go(`/join/${late}`);
 	const msg = (r) => text(r.html.match(/role="alert"[^>]*>([\s\S]*?)<\/p>/)?.[1]);
-	record(29, [visitor.html.includes('Create an account to join') ? 'The invite appears with Sign in and Create account buttons' : 'Wrong page',
+	record(30, [visitor.html.includes('Create an account to join') ? 'The invite appears with Sign in and Create account buttons' : 'Wrong page',
 		msg(wrong), msg(asMember), joined.path === '/employee' ? 'The user joins Noctua Demo; the Employee Home page appears' : appears(joined), msg(again), msg(expired)]);
 }
-// 30 Owner: the Organizations page, and deactivating an organization
+// 31 Owner: the Organizations page, and deactivating an organization
 {
 	const ow = await new Session().login('owner');
 	const page = await ow.go('/owner');
 	const off = await ow.go('/owner?/toggle', { id: other });
 	const blocked = await new Session().go('/login', { email: A.other.email, password: A.other.password });
 	await ow.go('/owner?/toggle', { id: other });
-	record(30, [page.html.includes('Noctua Demo') && page.html.includes('Other Org Sdn Bhd') ? 'All organizations appear with their users' : 'Wrong list',
+	record(31, [page.html.includes('Noctua Demo') && page.html.includes('Other Org Sdn Bhd') ? 'All organizations appear with their users' : 'Wrong list',
 		appears(await ow.go('/employee')), appears(await admin.go('/owner')), off.msg, blocked.msg]);
 }
-// 31 Organizations are apart: the Administrator of Other Org Sdn Bhd sees none of Noctua Demo's data
+// Isolation: organizations are apart: the Administrator of Other Org Sdn Bhd sees none of Noctua Demo's data
 {
 	const ot = await new Session().login('other');
 	const reg = await ot.go('/register'), names = cellTexts(reg.html);
-	record(31, [names.length === 1 && names[0].startsWith('SecretTool') ? 'Only SecretTool appears' : `${names.length} tools appear`,
+	record('iso', [names.length === 1 && names[0].startsWith('SecretTool') ? 'Only SecretTool appears' : `${names.length} tools appear`,
 		(await ot.go(`/register/${chat.tol_id}`)).h1, (await emp1.go('/register?q=Secret')).msg,
 		(await ot.go('/admin/users')).html.includes('emp1@satar.test') ? 'Users of Noctua Demo appear' : 'Only the users of Other Org Sdn Bhd appear',
 		rows((await ot.go('/admin/audit?from=2026-11-01&to=2026-11-30')).html) === 0 ? 'No decisions of Noctua Demo appear' : 'Decisions of Noctua Demo appear']);

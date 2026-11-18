@@ -28,10 +28,10 @@ async function post(cookies, path, form) {
 		headers: { accept: 'text/html', origin: BASE, 'content-type': 'application/x-www-form-urlencoded', cookie: cookies.map((c) => `${c.name}=${c.value}`).join('; ') } });
 }
 
-const S = Object.fromEntries(await Promise.all(['emp1', 'mgr', 'rev', 'admin'].map(async (w) => [w, await cookiesFor(w)])));
+const S = Object.fromEntries(await Promise.all(['emp1', 'mgr', 'rev', 'admin', 'newbie', 'owner'].map(async (w) => [w, await cookiesFor(w)])));
 
 // Fresh demo data: one request waiting for the Finance Manager, one waiting for the Reviewer.
-const [cat] = await sql`select cat_id from category_t where cat_name = 'Code assistant'`;
+const [cat] = await sql`select c.cat_id from category_t c join organization_t o using (org_id) where o.org_name = 'Noctua Demo' and c.cat_name = 'Code assistant'`;
 for (const name of ['GitHub Copilot', 'Perplexity']) {
 	const [t] = await sql`select tol_id from tool_t where tol_name = ${name}`;
 	if (t) { await sql`delete from audit_log_t where tol_id = ${t.tol_id}`; await sql`delete from request_t where tol_id = ${t.tol_id}`; await sql`delete from tool_t where tol_id = ${t.tol_id}`; }
@@ -40,9 +40,15 @@ await post(S.emp1, '/requests/new', { name: 'GitHub Copilot', vendor: 'GitHub', 
 await post(S.emp1, '/requests/new', { name: 'Perplexity', vendor: 'Perplexity AI', url: 'https://www.perplexity.ai', cat: cat.cat_id, purpose: 'Research market news for the monthly report', dataClass: 'Public' });
 const id = async (name) => (await sql`select r.req_id from request_t r join tool_t t using (tol_id) where t.tol_name = ${name}`)[0].req_id;
 await post(S.mgr, `/manager/requests/${await id('Perplexity')}`, { decision: 'Approve', reason: 'Saves research time for the monthly report' });
-const [chat] = await sql`select tol_id from tool_t where tol_name = 'ChatGPT'`;
+const [chat] = await sql`select t.tol_id from tool_t t join organization_t o using (org_id) where o.org_name = 'Noctua Demo' and t.tol_name = 'ChatGPT'`;
 const [emp1] = await sql`select usr_id from user_t where usr_email = ${A.emp1.email}`;
 const month = 'from=2026-11-01&to=2026-11-30';
+// An invite link of Noctua Demo for screenshot 30 (the Administrator creates it in the app).
+const [fin] = await sql`select d.dep_id from department_t d join organization_t o using (org_id) where o.org_name = 'Noctua Demo' and d.dep_name = 'Finance'`;
+const inviteHtml = await fetch(BASE + '/admin/users?/invite', { method: 'POST', redirect: 'manual', body: new URLSearchParams({ role: 'Employee', dep: fin.dep_id, email: '' }),
+	headers: { accept: 'text/html', origin: BASE, 'content-type': 'application/x-www-form-urlencoded', cookie: S.admin.map((c) => `${c.name}=${c.value}`).join('; ') } }).then((r) => r.text());
+const inviteCode = inviteHtml.match(/\/join\/([0-9a-f]+)</)?.[1];
+if (!inviteCode) throw new Error('no invite code for screenshot 30');
 
 const SHOTS = [
 	[1, null, '/login'], [2, null, '/forgot-password'], [3, 'emp1', '/reset-password'], [4, 'emp1', '/employee'], [5, 'emp1', '/register'],
@@ -52,7 +58,11 @@ const SHOTS = [
 	[18, 'admin', '/admin'], [19, 'admin', '/admin/users'], [20, 'admin', `/admin/users/${emp1.usr_id}`], [21, 'admin', '/admin/departments'],
 	[22, 'admin', '/admin/catalogue'], [23, 'admin', `/admin/audit?${month}`], [24, 'admin', `/admin/reports?type=register&${month}`], [25, 'emp1', '/profile'],
 	// The Catalogue again, with the edit popup of the first category open (the 4th item is a button to click).
-	['22b', 'admin', '/admin/catalogue', 'main table button[type=button]']
+	['22b', 'admin', '/admin/catalogue', 'main table button[type=button]'],
+	// Organizations and accounts. 19b: the Invite user popup. 30: the invite as the new user (newbie) sees it before joining.
+	['19b', 'admin', '/admin/users', 'main > p > button'],
+	[26, null, '/'], [27, null, '/signup'], [28, null, '/signup/check-email?email=gopal%40example.com'], [29, 'newbie', '/welcome'],
+	[30, 'newbie', `/join/${inviteCode}`], [31, 'owner', '/owner']
 ];
 await sql.end();
 
