@@ -5,6 +5,8 @@ export const DATA_CLASSES = ['Public', 'Internal', 'Confidential', 'Restricted']
 export const RISKS = ['Low', 'Medium', 'High'] as const;
 export const DECISIONS = ['Approve', 'Reject', 'Ban'] as const;
 export type Role = (typeof ROLES)[number];
+/** A member's role inside an organization, or the platform Owner (outside every organization). */
+export type UserRole = Role | 'Owner';
 export type DataClass = (typeof DATA_CLASSES)[number];
 export type Risk = (typeof RISKS)[number];
 export type ToolStatus = 'Pending' | 'Approved' | 'Rejected' | 'Banned';

@@ -1,6 +1,6 @@
 # SATAR: Shadow AI Tool Approval Register
 
-A web-based register where employees request generative AI tools, a Manager checks the business need, a Reviewer checks the data risk, and every decision goes into an audit log.
+A web-based register for many organizations, where employees request generative AI tools, a Manager checks the business need, a Reviewer checks the data risk, and every decision goes into an audit log.
 
 Stack: SvelteKit 3 and Svelte 5 (TypeScript), Supabase (PostgreSQL, Auth, Row Level Security), Drizzle ORM, Netlify.
 
@@ -8,13 +8,16 @@ Stack: SvelteKit 3 and Svelte 5 (TypeScript), Supabase (PostgreSQL, Auth, Row Le
 
 | Role | Pages |
 | --- | --- |
-| All | `/login`, `/forgot-password`, `/reset-password`, `/profile`, `/register` (search the AI tool register) |
+| Visitor | `/` (landing page), `/signup`, `/login`, `/forgot-password`, `/reset-password`, `/join/[code]` (invite link) |
+| New user (no organization yet) | `/welcome`: create an organization (and become its Administrator) or join one with an invite link |
+| Every member | `/register` (search the AI tool register), `/register/[id]`, `/profile` |
 | Employee | `/employee`, `/requests/new`, `/requests`, `/requests/[id]` |
 | Manager | `/manager`, `/manager/requests`, `/manager/requests/[id]`, `/manager/tools` |
 | Reviewer | `/reviewer`, `/reviewer/queue`, `/reviewer/queue/[id]`, `/reviewer/overdue` |
-| Administrator | `/admin`, `/admin/users`, `/admin/users/[id]`, `/admin/departments`, `/admin/catalogue` (categories and tools), `/admin/audit`, `/admin/reports` |
+| Administrator | `/admin`, `/admin/users` (users and invite links), `/admin/users/[id]`, `/admin/departments`, `/admin/catalogue` (categories and tools), `/admin/audit`, `/admin/reports` |
+| Owner (platform) | `/owner`: all organizations, deactivate or reactivate one |
 
-`src/hooks.server.ts` checks the session and the role before every page. The SQL rules in `drizzle/0001_rls.sql` also protect each table.
+Every organization's rows carry its `org_id`, and every query filters by it. `src/hooks.server.ts` checks the session, the role and the organization before every page. The SQL rules in `drizzle/0003_rls_organizations.sql` also keep organizations apart in the database.
 
 ## Set up
 
@@ -40,19 +43,19 @@ You need Node.js 22 or 24 and a free Supabase project.
    - Set Site URL to `http://localhost:8888`.
    - Add `http://localhost:8888/auth/callback` to Redirect URLs (later also your Netlify address).
 
-5. Create the first Administrator:
+5. In Supabase, open Authentication > Emails > Templates. So that the links work on any device, change the link in:
+   - **Confirm signup** to `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email&next=/welcome`
+   - **Reset Password** to `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=recovery&next=/reset-password`
 
-   ```bash
-   npm run first-admin -- you@example.com First Last
-   ```
-
-6. Start the app, open http://localhost:8888, click "Forgot password?" and set your password from the email:
+6. Start the app, open http://localhost:8888 and click "Get started" to create your account and your organization:
 
    ```bash
    npm run dev
    ```
 
-7. As the Administrator, add departments, categories and the other users. Each new user sets a password with "Forgot password?". For real users, set up an email server in Supabase (Authentication > Emails > SMTP): the built-in email reaches only the project team.
+7. As the Administrator, add departments, check the categories in the Catalogue, and invite your colleagues from Users > Invite user. For real users, set up an email server in Supabase (Authentication > Emails > SMTP): the built-in email reaches only the project team.
+
+8. Optional: make your account the platform Owner, who sees all organizations: `npm run make-owner -- you@example.com`.
 
 ## Other commands
 

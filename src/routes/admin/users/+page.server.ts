@@ -1,10 +1,43 @@
-import { eq } from 'drizzle-orm';
-import { db, department, user } from '#lib/server/db/index.ts';
-import type { PageServerLoad } from './$types';
+import { fail } from '@sveltejs/kit';
+import { and, eq, gt, isNull } from 'drizzle-orm';
+import { db, department, invite, user } from '#lib/server/db/index.ts';
+import { member } from '#lib/server/auth.ts';
+import { MSG, ROLES, field, isEmail, oneOf } from '#lib/rules.ts';
+import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async () => ({
-	users: await db
-		.select({ id: user.usr_id, first: user.usr_f_name, last: user.usr_l_name, email: user.usr_email, role: user.usr_role, department: department.dep_name, active: user.usr_active })
-		.from(user).innerJoin(department, eq(user.dep_id, department.dep_id))
-		.orderBy(user.usr_f_name, user.usr_l_name)
-});
+const INVITE_DAYS = 7;
+
+export const load: PageServerLoad = async ({ locals }) => {
+	const org = member(locals).orgId;
+	const [users, invites, departments] = await Promise.all([
+		db.select({ id: user.usr_id, first: user.usr_f_name, last: user.usr_l_name, email: user.usr_email, role: user.usr_role, department: department.dep_name, active: user.usr_active })
+			.from(user).innerJoin(department, eq(user.dep_id, department.dep_id))
+			.where(eq(user.org_id, org)).orderBy(user.usr_f_name, user.usr_l_name),
+		// Open invites: not used yet and not expired.
+		db.select({ id: invite.inv_id, code: invite.inv_code, role: invite.usr_role, department: department.dep_name, email: invite.inv_email, expires: invite.inv_expires })
+			.from(invite).innerJoin(department, eq(invite.dep_id, department.dep_id))
+			.where(and(eq(invite.org_id, org), isNull(invite.inv_used_by), gt(invite.inv_expires, new Date()))).orderBy(invite.inv_expires),
+		db.select().from(department).where(eq(department.org_id, org)).orderBy(department.dep_name)
+	]);
+	return { users, invites, departments, roles: ROLES };
+};
+
+export const actions: Actions = {
+	// Creates a single-use invite link for a role and a department, valid for 7 days, optionally for one email id.
+	invite: async ({ request, locals, url }) => {
+		const me = member(locals), f = await request.formData();
+		const role = field(f, 'role'), dep = Number(field(f, 'dep')), email = field(f, 'email').toLowerCase();
+		const [d] = Number.isInteger(dep) && dep > 0 ? await db.select().from(department).where(and(eq(department.dep_id, dep), eq(department.org_id, me.orgId))) : [];
+		if (!oneOf(ROLES, role) || !d || (email && !isEmail(email))) return fail(400, { error: MSG.fields });
+		// 18 random bytes as 36 hex characters: impossible to guess.
+		const code = Array.from(crypto.getRandomValues(new Uint8Array(18)), (b) => b.toString(16).padStart(2, '0')).join('');
+		await db.insert(invite).values({ inv_code: code, org_id: me.orgId, dep_id: dep, usr_role: role, inv_email: email || null,
+			inv_expires: new Date(Date.now() + INVITE_DAYS * 864e5), inv_created_by: me.id });
+		return { message: 'Invite created. Copy the link and send it to the person.', link: `${url.origin}/join/${code}` };
+	},
+	cancel: async ({ request, locals }) => {
+		const id = Number(field(await request.formData(), 'id'));
+		await db.delete(invite).where(and(eq(invite.inv_id, id), eq(invite.org_id, member(locals).orgId), isNull(invite.inv_used_by)));
+		return { message: 'Invite cancelled' };
+	}
+};

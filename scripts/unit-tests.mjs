@@ -56,15 +56,23 @@ const made = ['NotesBot', 'MeetingAI', 'PromptPal', 'BrandWriter', 'Otter.ai', '
 await sql`delete from audit_log_t where tol_id in (select tol_id from tool_t where tol_name in ${sql(made)})`;
 await sql`delete from request_t where tol_id in (select tol_id from tool_t where tol_name in ${sql(made)})`;
 await sql`delete from tool_t where tol_name in ${sql(made)}`;
-await sql`delete from department_t where dep_name = 'Legal'`;
-await sql`delete from category_t where cat_name = 'Image generator'`;
+const [{ org_id: demo }] = await sql`select org_id from organization_t where org_name = 'Noctua Demo'`;
+const [{ org_id: other }] = await sql`select org_id from organization_t where org_name = 'Other Org Sdn Bhd'`;
+await sql`delete from department_t where org_id = ${demo} and dep_name = 'Legal'`;
+await sql`delete from category_t where org_id = ${demo} and cat_name = 'Image generator'`;
+// Tests 27 to 29 make an organization and invites, and move the two newcomers into organizations: undo that.
+await sql`update user_t set org_id = null, dep_id = null, usr_role = null where usr_email in ('newbie@satar.test', 'newbie2@satar.test')`;
+await sql`delete from invite_t where org_id in (${demo}, ${other}) or org_id in (select org_id from organization_t where org_name = 'Newbie Org')`;
+for (const t of ['category_t', 'department_t']) await sql`delete from ${sql(t)} where org_id in (select org_id from organization_t where org_name = 'Newbie Org')`;
+await sql`delete from organization_t where org_name = 'Newbie Org'`;
+await sql`update organization_t set org_active = true where org_id = ${other}`;
 // The user that test 20 adds: remove both the USER_T row and the Supabase Auth account.
 const authAdmin = createClient(process.env.PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } }).auth.admin;
 for (const [u] of [await sql`delete from user_t where usr_email = 'aina@satar.test' returning usr_id`]) if (u) await authAdmin.deleteUser(u.usr_id);
 const { data: authList } = await authAdmin.listUsers({ perPage: 1000 });
 for (const u of authList.users.filter((x) => x.email === 'aina@satar.test')) await authAdmin.deleteUser(u.id);
-const [cat] = await sql`select cat_id from category_t where cat_name = 'Chatbot'`;
-const [chat] = await sql`select tol_id from tool_t where tol_name = 'ChatGPT'`;
+const [cat] = await sql`select cat_id from category_t where org_id = ${demo} and cat_name = 'Chatbot'`;
+const [chat] = await sql`select tol_id from tool_t where org_id = ${demo} and tol_name = 'ChatGPT'`;
 
 const emp1 = await new Session().login('emp1'), emp2 = await new Session().login('emp2'), mgr = await new Session().login('mgr');
 const mgr2 = await new Session().login('mgr2'), rev = await new Session().login('rev'), admin = await new Session().login('admin');
@@ -90,7 +98,7 @@ record(4, [
 // 5 AI Tool Register
 {
 	const all = await emp1.go('/register?q='), chatQ = await emp1.go('/register?q=chat');
-	const total = (await sql`select count(*)::int n from tool_t`)[0].n;
+	const total = (await sql`select count(*)::int n from tool_t where org_id = ${demo}`)[0].n;
 	record(5, [
 		rows(all.html) === total ? 'All tools appear' : `${rows(all.html)} of ${total} tools appear`,
 		cellTexts(chatQ.html).every((t) => /chat/i.test(t)) && rows(chatQ.html) > 0 ? 'Only tools with "chat" in the name appear' : 'Other tools appear',
@@ -157,7 +165,7 @@ record(11, [tc11a, (await mgr.go('/manager/requests')).msg]);
 {
 	const r = await rev.go('/reviewer');
 	record(14, [r.h1 === 'Reviewer Home' && r.html.includes('NotesBot') ? 'Cards and requests approved by managers appear' : 'Wrong page', appears(await mgr.go('/reviewer'))]);
-	const q = await rev.go('/reviewer/queue'), pending = (await sql`select count(*)::int n from request_t where req_status = 'Pending Reviewer'`)[0].n;
+	const q = await rev.go('/reviewer/queue'), pending = (await sql`select count(*)::int n from request_t where org_id = ${demo} and req_status = 'Pending Reviewer'`)[0].n;
 	record(15, [rows(q.html) === pending && !q.html.includes('BrandWriter') && !q.html.includes('MeetingAI') ? "Only requests with status 'Pending Reviewer' appear" : 'Wrong requests', appears(await admin.go('/reviewer/queue'))]);
 }
 // 16 Risk Check
@@ -176,9 +184,9 @@ record(11, [tc11a, (await mgr.go('/manager/requests')).msg]);
 // 17 Overdue Reviews: TC2 first (no overdue tool), then two tools with past review dates
 {
 	const none = (await rev.go('/reviewer/overdue')).msg;
-	await sql`insert into tool_t (tol_name, tol_vendor, tol_url, cat_id, tol_status, tol_risk, tol_data_class, tol_conditions, tol_review_date) values
-		('Otter.ai', 'Otter', 'https://otter.ai', ${cat.cat_id}, 'Approved', 'Medium', 'Internal', 'Internal meetings only', '2026-11-01'),
-		('Grammarly', 'Grammarly', 'https://grammarly.com', ${cat.cat_id}, 'Approved', 'Low', 'Public', 'Public text only', '2026-10-15')`;
+	await sql`insert into tool_t (org_id, tol_name, tol_vendor, tol_url, cat_id, tol_status, tol_risk, tol_data_class, tol_conditions, tol_review_date) values
+		(${demo}, 'Otter.ai', 'Otter', 'https://otter.ai', ${cat.cat_id}, 'Approved', 'Medium', 'Internal', 'Internal meetings only', '2026-11-01'),
+		(${demo}, 'Grammarly', 'Grammarly', 'https://grammarly.com', ${cat.cat_id}, 'Approved', 'Low', 'Public', 'Public text only', '2026-10-15')`;
 	const r = await rev.go('/reviewer/overdue'), list = cellTexts(r.html);
 	record(17, [list.length === 2 && list[0].startsWith('Grammarly') ? 'The 2 tools appear, oldest first' : `${list.length} tools appear`, none]);
 }
@@ -186,15 +194,18 @@ record(11, [tc11a, (await mgr.go('/manager/requests')).msg]);
 {
 	const d = await admin.go('/admin');
 	record(18, [d.h1 === 'Administrator Dashboard' && d.html.includes('Tools by risk level') ? 'Counts by status and the risk chart appear' : 'Wrong page', appears(await rev.go('/admin'))]);
-	const u = await admin.go('/admin/users'), users = (await sql`select count(*)::int n from user_t`)[0].n;
+	const u = await admin.go('/admin/users'), users = (await sql`select count(*)::int n from user_t where org_id = ${demo}`)[0].n;
 	record(19, [rows(u.html) === users ? 'All users appear with role and department' : `${rows(u.html)} of ${users} users appear`, appears(await emp1.go('/admin/users'))]);
 }
-// 20 Add or Edit User
+// 20 Edit User (new users join with invite links, test 28)
 {
-	const [dep] = await sql`select dep_id from department_t where dep_name = 'Finance'`;
-	const add = (first, email, role) => admin.go('/admin/users/new', { first, last: first ? 'Test' : '', email, role, dep: first ? dep.dep_id : '', active: 'on' });
-	const r = await add('Aina', 'aina@satar.test', 'Employee');
-	record(20, [(await add('', '', '')).msg, (await add('Aina', A.emp1.email, 'Employee')).msg, r.msg]);
+	const id = async (email) => (await sql`select usr_id, dep_id from user_t where usr_email = ${email}`)[0];
+	const ben = await id(A.emp2.email), me = await id(A.admin.email);
+	record(20, [
+		(await admin.go(`/admin/users/${ben.usr_id}`, { first: '', last: '', role: '', dep: '' })).msg,
+		(await admin.go(`/admin/users/${me.usr_id}`, { first: 'Test', last: 'Admin', role: 'Administrator', dep: me.dep_id })).msg,
+		(await admin.go(`/admin/users/${ben.usr_id}`, { first: 'Ben', last: 'Employee', role: 'Employee', dep: ben.dep_id, active: 'on' })).msg
+	]);
 }
 // 21 Departments, 22 Categories
 record(21, [(await admin.go('/admin/departments?/add', { name: 'A' })).msg, (await admin.go('/admin/departments?/add', { name: 'Finance' })).msg, (await admin.go('/admin/departments?/add', { name: 'Legal' })).msg]);
@@ -206,6 +217,66 @@ record(22, [(await admin.go('/admin/catalogue?/add', { name: 'A' })).msg, (await
 	const r = await admin.go('/admin/reports?type=register&from=2026-11-01&to=2026-11-30');
 	record(24, [(await admin.go('/admin/reports?type=&from=&to=')).msg, (await admin.go('/admin/reports?type=register&from=2026-11-10&to=2026-11-01')).msg,
 		/<h2>AI Tool Register Report<\/h2>/.test(r.html) ? 'The AI Tool Register Report appears' : 'No report']);
+}
+// 26 Sign Up: only the checks before Supabase sends an email (no email is sent in the tests)
+{
+	const s = new Session();
+	const up = (first, email, password, confirm) => s.go('/signup', { first, last: first ? 'Test' : '', email, password, confirm });
+	record(26, [(await up('', '', '', '')).msg, (await up('Gopal', A.newbie.email, 'NewPass#2027', 'NewPass#2027')).msg, (await up('Ivan', 'ivan@satar.test', 'NewPass#2027', 'NewPass#2028')).msg]);
+}
+// 27 Welcome and Create organization (newbie creates "Newbie Org")
+{
+	const nb = await new Session().login('newbie');
+	const w = await nb.go('/welcome');
+	const bad = await nb.go('/welcome?/create', { orgName: 'A', depName: 'IT' });
+	const ok = await nb.go('/welcome?/create', { orgName: 'Newbie Org', depName: 'IT' });
+	const cats = (await sql`select count(*)::int n from category_t c join organization_t o using (org_id) where o.org_name = 'Newbie Org'`)[0].n;
+	record(27, [w.h1 === 'Welcome, Gopal' ? 'The Welcome page appears with both choices' : appears(w), appears(await emp1.go('/welcome')), bad.msg,
+		ok.path === '/admin' && cats === 4 ? 'The organization is created with 4 starter categories; the Administrator Dashboard page appears' : `${appears(ok)} (${cats} categories)`]);
+}
+// 28 Invite user (the Administrator of Noctua Demo)
+const [fin] = await sql`select dep_id from department_t where org_id = ${demo} and dep_name = 'Finance'`;
+const inviteLink = async (role, email = '') => (await admin.go('/admin/users?/invite', { role, dep: fin.dep_id, email })).html.match(/<code>[^<]*\/join\/([0-9a-f]+)<\/code>/)?.[1];
+{
+	const blank = await admin.go('/admin/users?/invite', { role: '', dep: '', email: '' });
+	const code = await inviteLink('Employee');
+	const open = await admin.go('/admin/users');
+	record(28, [blank.msg, code ? 'Invite created; the link appears with a Copy button' : 'No link', open.html.includes(code ?? 'none') ? 'The invite appears in Open invites' : 'Not listed']);
+}
+// 29 Join with an invite link
+{
+	const code = await inviteLink('Employee'), locked = await inviteLink('Reviewer', 'someone@satar.test');
+	const visitor = await new Session().go(`/join/${code}`);
+	const nb2 = await new Session().login('newbie2');
+	const wrong = await nb2.go(`/join/${locked}`);
+	const asMember = await emp1.go(`/join/${code}`);
+	const joined = await nb2.go(`/join/${code}`, {});
+	const again = await new Session().go(`/join/${code}`);
+	const late = await inviteLink('Employee');
+	await sql`update invite_t set inv_expires = now() - interval '1 day' where inv_code = ${late}`;
+	const expired = await new Session().go(`/join/${late}`);
+	const msg = (r) => text(r.html.match(/role="alert"[^>]*>([\s\S]*?)<\/p>/)?.[1]);
+	record(29, [visitor.html.includes('Create an account to join') ? 'The invite appears with Sign in and Create account buttons' : 'Wrong page',
+		msg(wrong), msg(asMember), joined.path === '/employee' ? 'The user joins Noctua Demo; the Employee Home page appears' : appears(joined), msg(again), msg(expired)]);
+}
+// 30 Owner: the Organizations page, and deactivating an organization
+{
+	const ow = await new Session().login('owner');
+	const page = await ow.go('/owner');
+	const off = await ow.go('/owner?/toggle', { id: other });
+	const blocked = await new Session().go('/login', { email: A.other.email, password: A.other.password });
+	await ow.go('/owner?/toggle', { id: other });
+	record(30, [page.html.includes('Noctua Demo') && page.html.includes('Other Org Sdn Bhd') ? 'All organizations appear with their users' : 'Wrong list',
+		appears(await ow.go('/employee')), appears(await admin.go('/owner')), off.msg, blocked.msg]);
+}
+// 31 Organizations are apart: the Administrator of Other Org Sdn Bhd sees none of Noctua Demo's data
+{
+	const ot = await new Session().login('other');
+	const reg = await ot.go('/register'), names = cellTexts(reg.html);
+	record(31, [names.length === 1 && names[0].startsWith('SecretTool') ? 'Only SecretTool appears' : `${names.length} tools appear`,
+		(await ot.go(`/register/${chat.tol_id}`)).h1, (await emp1.go('/register?q=Secret')).msg,
+		(await ot.go('/admin/users')).html.includes('emp1@satar.test') ? 'Users of Noctua Demo appear' : 'Only the users of Other Org Sdn Bhd appear',
+		rows((await ot.go('/admin/audit?from=2026-11-01&to=2026-11-30')).html) === 0 ? 'No decisions of Noctua Demo appear' : 'Decisions of Noctua Demo appear']);
 }
 // 25 My Profile (Change password link, Sign out), then 3 Reset Password with emp2 (it changes emp2's password)
 {

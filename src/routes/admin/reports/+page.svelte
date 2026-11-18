@@ -29,6 +29,7 @@
 		<div class="report-head">
 			<h2>{r.title}</h2>
 			<p>Shadow AI Tool Approval Register (SATAR)</p>
+			<p><strong>{r.organization}</strong></p>
 		</div>
 		<div class="row" style="justify-content: space-between">
 			<small>Period: {fmtDate(data.from)} to {fmtDate(data.to)}</small><small>Printed on: {r.printedOn}</small>

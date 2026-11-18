@@ -9,12 +9,12 @@ export function readRange(url: URL) {
 	return { from, to, error: isDate(from) && isDate(to) && from <= to ? '' : MSG.dateRange };
 }
 
-/** Decisions of the audit log in a date range, newest first. */
-export function auditRows(from: string, to: string) {
+/** Decisions of the organization's audit log in a date range, newest first. */
+export function auditRows(orgId: number, from: string, to: string) {
 	return db
 		.select({ id: audit.aud_id, time: audit.aud_time, first: user.usr_f_name, last: user.usr_l_name, action: audit.aud_action, tool: tool.tol_name, reason: audit.aud_reason })
 		.from(audit).innerJoin(user, eq(audit.usr_id, user.usr_id)).innerJoin(tool, eq(audit.tol_id, tool.tol_id))
-		.where(between(audit.aud_time, dayStart(from), dayEnd(to)))
+		.where(and(eq(audit.org_id, orgId), between(audit.aud_time, dayStart(from), dayEnd(to))))
 		.orderBy(desc(audit.aud_time));
 }
 
@@ -22,9 +22,9 @@ export const REPORTS = { register: 'AI Tool Register Report', overdue: 'Overdue 
 export type ReportType = keyof typeof REPORTS;
 
 /** The four printed reports of section 7.0.8: column heads, rows and the total row, all as text. */
-export async function buildReport(type: ReportType, from: string, to: string): Promise<{ head: string[]; rows: string[][]; total: string[] | null }> {
+export async function buildReport(orgId: number, type: ReportType, from: string, to: string): Promise<{ head: string[]; rows: string[][]; total: string[] | null }> {
 	if (type === 'register') {
-		const rows = await db.select().from(tool).innerJoin(category, eq(tool.cat_id, category.cat_id)).orderBy(asc(tool.tol_name));
+		const rows = await db.select().from(tool).innerJoin(category, eq(tool.cat_id, category.cat_id)).where(eq(tool.org_id, orgId)).orderBy(asc(tool.tol_name));
 		return {
 			head: ['No.', 'Tool', 'Category', 'Status', 'Risk', 'Data class', 'Review date'],
 			rows: rows.map((r, i) => [String(i + 1), r.tool_t.tol_name, r.category_t.cat_name, r.tool_t.tol_status, r.tool_t.tol_risk ?? '-', r.tool_t.tol_data_class ?? '-', fmtDate(r.tool_t.tol_review_date)]),
@@ -33,7 +33,7 @@ export async function buildReport(type: ReportType, from: string, to: string): P
 	}
 	if (type === 'overdue') {
 		const now = today();
-		const rows = await db.select().from(tool).where(and(eq(tool.tol_status, 'Approved'), lt(tool.tol_review_date, now))).orderBy(asc(tool.tol_review_date));
+		const rows = await db.select().from(tool).where(and(eq(tool.org_id, orgId), eq(tool.tol_status, 'Approved'), lt(tool.tol_review_date, now))).orderBy(asc(tool.tol_review_date));
 		return {
 			head: ['No.', 'Tool', 'Review date', 'Days overdue', 'Risk', 'Data class'],
 			rows: rows.map((t, i) => [String(i + 1), t.tol_name, fmtDate(t.tol_review_date), String(Math.round((Date.parse(now) - Date.parse(t.tol_review_date!)) / 864e5)), t.tol_risk ?? '-', t.tol_data_class ?? '-']),
@@ -41,13 +41,13 @@ export async function buildReport(type: ReportType, from: string, to: string): P
 		};
 	}
 	if (type === 'audit') {
-		const rows = await auditRows(from, to);
+		const rows = await auditRows(orgId, from, to);
 		return { head: ['No.', 'Date and time', 'User', 'Action', 'Tool', 'Reason'], rows: rows.map((r, i) => [String(i + 1), fmtTime(r.time), `${r.first} ${r.last}`, r.action, r.tool, r.reason]), total: null };
 	}
 	// Request summary: the requests of each department in the period, counted by result.
 	const rows = await db.select({ dep: department.dep_name, status: request.req_status }).from(request)
 		.innerJoin(user, eq(request.usr_id, user.usr_id)).innerJoin(department, eq(user.dep_id, department.dep_id))
-		.where(between(request.req_date, dayStart(from), dayEnd(to)));
+		.where(and(eq(request.org_id, orgId), between(request.req_date, dayStart(from), dayEnd(to))));
 	const byDep = new Map<string, number[]>();
 	for (const r of rows) {
 		const c = byDep.get(r.dep) ?? [0, 0, 0, 0];
