@@ -12,7 +12,7 @@ Stack: SvelteKit 3 and Svelte 5 (TypeScript), Supabase (PostgreSQL, Auth, Row Le
 | Employee | `/employee`, `/requests/new`, `/requests`, `/requests/[id]` |
 | Manager | `/manager`, `/manager/requests`, `/manager/requests/[id]`, `/manager/tools` |
 | Reviewer | `/reviewer`, `/reviewer/queue`, `/reviewer/queue/[id]`, `/reviewer/overdue` |
-| Administrator | `/admin`, `/admin/users`, `/admin/users/[id]`, `/admin/departments`, `/admin/categories`, `/admin/audit`, `/admin/reports` |
+| Administrator | `/admin`, `/admin/users`, `/admin/users/[id]`, `/admin/departments`, `/admin/catalogue` (categories and tools), `/admin/audit`, `/admin/reports` |
 
 `src/hooks.server.ts` checks the session and the role before every page. The SQL rules in `drizzle/0001_rls.sql` also protect each table.
 

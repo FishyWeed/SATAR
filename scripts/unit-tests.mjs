@@ -3,12 +3,14 @@
 // Usage: node scripts/unit-tests.mjs <test accounts JSON from seed-test> <results JSON>
 // It changes data: run `npm run seed-test` first and afterwards (to reset the test passwords).
 import { readFileSync, writeFileSync } from 'node:fs';
+import { createClient } from '@supabase/supabase-js';
 import postgres from 'postgres';
 
 process.loadEnvFile();
 const [accountsFile, outFile] = process.argv.slice(2);
 const A = JSON.parse(readFileSync(accountsFile, 'utf8'));
-const BASE = 'http://localhost:8888';
+// The app to test: the dev server by default, or another address in SATAR_URL (for example the Netlify site).
+const BASE = process.env.SATAR_URL ?? 'http://localhost:8888';
 const sql = postgres(process.env.DATABASE_URL, { prepare: false });
 
 // ---------- a tiny browser: cookies, form posts, redirects ----------
@@ -49,13 +51,18 @@ const results = {};
 const record = (n, list) => { results[n] = list; };
 
 // ---------- clean the data that earlier runs of this script made ----------
-const made = ['NotesBot', 'MeetingAI', 'PromptPal', 'BrandWriter', 'Otter.ai', 'Grammarly'];
+// (GitHub Copilot and Perplexity come from screenshots.mjs.)
+const made = ['NotesBot', 'MeetingAI', 'PromptPal', 'BrandWriter', 'Otter.ai', 'Grammarly', 'GitHub Copilot', 'Perplexity'];
 await sql`delete from audit_log_t where tol_id in (select tol_id from tool_t where tol_name in ${sql(made)})`;
 await sql`delete from request_t where tol_id in (select tol_id from tool_t where tol_name in ${sql(made)})`;
 await sql`delete from tool_t where tol_name in ${sql(made)}`;
 await sql`delete from department_t where dep_name = 'Legal'`;
 await sql`delete from category_t where cat_name = 'Image generator'`;
-await sql`delete from user_t where usr_email = 'aina@satar.test'`;
+// The user that test 20 adds: remove both the USER_T row and the Supabase Auth account.
+const authAdmin = createClient(process.env.PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } }).auth.admin;
+for (const [u] of [await sql`delete from user_t where usr_email = 'aina@satar.test' returning usr_id`]) if (u) await authAdmin.deleteUser(u.usr_id);
+const { data: authList } = await authAdmin.listUsers({ perPage: 1000 });
+for (const u of authList.users.filter((x) => x.email === 'aina@satar.test')) await authAdmin.deleteUser(u.id);
 const [cat] = await sql`select cat_id from category_t where cat_name = 'Chatbot'`;
 const [chat] = await sql`select tol_id from tool_t where tol_name = 'ChatGPT'`;
 
@@ -191,7 +198,7 @@ record(11, [tc11a, (await mgr.go('/manager/requests')).msg]);
 }
 // 21 Departments, 22 Categories
 record(21, [(await admin.go('/admin/departments?/add', { name: 'A' })).msg, (await admin.go('/admin/departments?/add', { name: 'Finance' })).msg, (await admin.go('/admin/departments?/add', { name: 'Legal' })).msg]);
-record(22, [(await admin.go('/admin/categories?/add', { name: 'A' })).msg, (await admin.go('/admin/categories?/add', { name: 'Chatbot' })).msg, (await admin.go('/admin/categories?/add', { name: 'Image generator' })).msg]);
+record(22, [(await admin.go('/admin/catalogue?/add', { name: 'A' })).msg, (await admin.go('/admin/catalogue?/add', { name: 'Chatbot' })).msg, (await admin.go('/admin/catalogue?/add', { name: 'Image generator' })).msg]);
 // 23 Audit Log, 24 Reports (the plan uses November 2026, the month of the test run)
 {
 	const a = await admin.go('/admin/audit?from=2026-11-10&to=2026-11-01'), b = await admin.go('/admin/audit?from=2026-11-01&to=2026-11-30');

@@ -43,3 +43,9 @@ dd { margin: 0; }
 	.bar, .no-print { display: none !important; }
 	main { max-width: none; padding: 0; }
 }
+dialog { border: 1px solid var(--ink); border-radius: 6px; padding: 1.25rem; width: min(560px, 92vw); max-height: 90vh; }
+dialog::backdrop { background: rgb(0 0 0 / 0.35); }
+dialog h2 { margin-top: 0; }
+fieldset { border: 1px solid var(--line); border-radius: 4px; }
+.ticks { display: grid; gap: 0.3rem; max-height: 14rem; overflow-y: auto; }
+.ticks label { display: flex; gap: 0.4rem; align-items: center; }

@@ -50,7 +50,9 @@ const SHOTS = [
 	[10, 'mgr', '/manager'], [11, 'mgr', '/manager/requests'], [12, 'mgr', `/manager/requests/${await id('GitHub Copilot')}`], [13, 'mgr', '/manager/tools'],
 	[14, 'rev', '/reviewer'], [15, 'rev', '/reviewer/queue'], [16, 'rev', `/reviewer/queue/${await id('Perplexity')}`], [17, 'rev', '/reviewer/overdue'],
 	[18, 'admin', '/admin'], [19, 'admin', '/admin/users'], [20, 'admin', `/admin/users/${emp1.usr_id}`], [21, 'admin', '/admin/departments'],
-	[22, 'admin', '/admin/categories'], [23, 'admin', `/admin/audit?${month}`], [24, 'admin', `/admin/reports?type=register&${month}`], [25, 'emp1', '/profile']
+	[22, 'admin', '/admin/catalogue'], [23, 'admin', `/admin/audit?${month}`], [24, 'admin', `/admin/reports?type=register&${month}`], [25, 'emp1', '/profile'],
+	// The Catalogue again, with the edit popup of the first category open (the 4th item is a button to click).
+	['22b', 'admin', '/admin/catalogue', 'main table button[type=button]']
 ];
 await sql.end();
 
@@ -72,7 +74,7 @@ const send = (method, params = {}) => new Promise((resolve, reject) => {
 const loaded = async () => { for (let i = 0; i < 80 && !events.includes('Page.loadEventFired'); i++) await new Promise((r) => setTimeout(r, 100)); events.length = 0; };
 
 await send('Page.enable'); await send('Network.enable');
-for (const [n, who, path] of SHOTS) {
+for (const [n, who, path, click] of SHOTS) {
 	await send('Network.clearBrowserCookies');
 	if (who) await send('Network.setCookies', { cookies: S[who] });
 	await send('Emulation.setDeviceMetricsOverride', { width: 1000, height: 700, deviceScaleFactor: 1, mobile: false });
@@ -81,8 +83,13 @@ for (const [n, who, path] of SHOTS) {
 	// Measure the page in a short window, so that a short page gets a short screenshot.
 	await send('Emulation.setDeviceMetricsOverride', { width: 1000, height: 200, deviceScaleFactor: 1, mobile: false });
 	const { result } = await send('Runtime.evaluate', { expression: 'Math.ceil(document.querySelector("main").getBoundingClientRect().bottom)' });
-	const height = Math.max(300, result.value + 8);
+	// A popup is drawn over the window, so its screenshot needs a window tall enough for the popup.
+	const height = Math.max(click ? 820 : 300, result.value + 8);
 	await send('Emulation.setDeviceMetricsOverride', { width: 1000, height, deviceScaleFactor: 1, mobile: false });
+	if (click) {
+		await send('Runtime.evaluate', { expression: `document.querySelector(${JSON.stringify(click)}).click()` });
+		await new Promise((r) => setTimeout(r, 300));
+	}
 	const { data } = await send('Page.captureScreenshot', { format: 'png', clip: { x: 0, y: 0, width: 1000, height, scale: 1 } });
 	writeFileSync(join(outDir, `shot${n}.png`), Buffer.from(data, 'base64'));
 	console.log(`shot${n}.png ${path.split('?')[0]} (${height}px)`);

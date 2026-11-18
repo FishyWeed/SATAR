@@ -11,7 +11,7 @@
 		Employee: [['Home', '/employee'], ['Register', '/register'], ['My Requests', '/requests']],
 		Manager: [['Home', '/manager'], ['Requests', '/manager/requests'], ['Tools', '/manager/tools'], ['Register', '/register']],
 		Reviewer: [['Home', '/reviewer'], ['Review Queue', '/reviewer/queue'], ['Overdue', '/reviewer/overdue'], ['Register', '/register']],
-		Administrator: [['Dashboard', '/admin'], ['Users', '/admin/users'], ['Departments', '/admin/departments'], ['Categories', '/admin/categories'], ['Audit', '/admin/audit'], ['Reports', '/admin/reports']]
+		Administrator: [['Dashboard', '/admin'], ['Users', '/admin/users'], ['Departments', '/admin/departments'], ['Catalogue', '/admin/catalogue'], ['Audit', '/admin/audit'], ['Reports', '/admin/reports']]
 	};
 </script>
 
