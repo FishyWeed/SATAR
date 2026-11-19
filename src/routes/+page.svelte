@@ -309,7 +309,8 @@
 		<div class="final__shaft" id="shaft"><i></i></div>
 		<img class="final__mid" data-speed="-0.1" src="/img/forest-mid-sm.webp" alt="" />
 		<div class="final__path"><i></i></div>
-		<img class="final__ground" data-speed="-0.16" src="/img/forest-ground-sm.webp" alt="" />
+		<!-- No parallax on this ground: it must stay on the section bottom, or a gap opens under it at the page end. -->
+		<img class="final__ground" src="/img/forest-ground-sm.webp" alt="" />
 	</div>
 	<div class="final__content s-reveal">
 		<img src="/img/logos/noctua-mark-lumen.svg" alt="" class="final__owl" />
