@@ -63,3 +63,6 @@ body.landing .inside { overflow: clip; }
 @media (max-width: 1023px) { .to-top { right: calc(var(--gutter-tablet) + env(safe-area-inset-right)); bottom: calc(76px + env(safe-area-inset-bottom)); } }
 @media (max-width: 767px) { .to-top { right: calc(16px + env(safe-area-inset-right)); bottom: calc(72px + env(safe-area-inset-bottom)); --_h: 44px; } }
 @media (prefers-reduced-motion: reduce) { .to-top { transition: none; } }
+/* Labels in the body font, in sentence case: the design system's spaced mono capitals looked generic (user, 20 Nov 2026). */
+body .s-eyebrow, body .pill, body .num { font-family: var(--font-sans); font-size: 14px; line-height: 20px; font-weight: 500; letter-spacing: 0; text-transform: none; }
+body .brand-by { font-family: var(--font-sans); font-size: 12px; letter-spacing: 0; text-transform: none; }

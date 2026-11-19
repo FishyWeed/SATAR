@@ -123,12 +123,9 @@
 		<div class="lantern"></div>
 	</div>
 
-	<!-- poster corner notes -->
+	<!-- scroll cue and sparks -->
 	<div class="poster" aria-hidden="true" data-speed="0.15" data-fade="0.6">
-		<span class="poster__tl">N° 01<br>Shadow AI</span>
-		<span class="poster__tr">3.1390° N<br>101.6869° E</span>
-		<span class="poster__bl">Kuala Lumpur<br>MMXXVI</span>
-		<span class="poster__br"><span class="scroll-cue"><i></i></span>Scroll to enter</span>
+		<span class="poster__br"><span class="scroll-cue"><i></i></span></span>
 		<svg class="spark spark--1" viewBox="0 0 24 24"><path d="M12 2c.5 5.3 4.7 9.5 10 10-5.3.5-9.5 4.7-10 10-.5-5.3-4.7-9.5-10-10 5.3-.5 9.5-4.7 10-10z"/></svg>
 		<svg class="spark spark--2" viewBox="0 0 24 24"><path d="M12 2c.5 5.3 4.7 9.5 10 10-5.3.5-9.5 4.7-10 10-.5-5.3-4.7-9.5-10-10 5.3-.5 9.5-4.7 10-10z"/></svg>
 	</div>
@@ -173,7 +170,7 @@
 	<svg class="orbit" data-speed="-0.06" aria-hidden="true" viewBox="0 0 800 800"><g fill="none" stroke="currentColor"><circle cx="400" cy="400" r="390" stroke-opacity=".08"/><circle cx="400" cy="400" r="300" stroke-opacity=".12"/><circle cx="400" cy="400" r="200" stroke-opacity=".16" stroke-dasharray="2 8"/><circle cx="400" cy="400" r="110" stroke-opacity=".22"/><circle cx="400" cy="400" r="34" stroke-opacity=".5"/><path d="M400 0v800M0 400h800" stroke-opacity=".06"/></g><circle cx="400" cy="400" r="6" fill="currentColor"/></svg>
 	<div class="wrap">
 		<header class="section-head s-reveal">
-			<p class="s-eyebrow">In the dark</p>
+			<p class="s-eyebrow">Shadow AI</p>
 			<h2 id="problem-title" class="display">Shadow AI is the AI <em>you cannot see.</em></h2>
 			<p class="lede">Staff already use AI tools to write, translate and summarise. Most of it happens out of sight, with company data.</p>
 		</header>
@@ -205,7 +202,7 @@
 	<div class="how__beam" aria-hidden="true"></div>
 	<div class="wrap">
 		<header class="section-head s-reveal">
-			<p class="s-eyebrow">Into the light</p>
+			<p class="s-eyebrow">How it works</p>
 			<h2 id="how-title" class="display">Three people. <em>One clear decision.</em></h2>
 			<p class="lede">Every new tool passes two checks before anyone uses it at work.</p>
 		</header>
@@ -241,7 +238,7 @@
 	<img class="features__bg" data-speed="-0.08" src="/img/forest-mid-sm.webp" alt="" aria-hidden="true" />
 	<div class="wrap">
 		<header class="section-head s-reveal">
-			<p class="s-eyebrow">What you get</p>
+			<p class="s-eyebrow">Features</p>
 			<h2 id="features-title" class="display">Everything a register <em>should keep.</em></h2>
 		</header>
 		<ul class="glow-grid">
@@ -259,7 +256,7 @@
 <section class="inside" id="inside" aria-labelledby="inside-title">
 	<div class="wrap">
 		<header class="section-head section-head--center s-reveal">
-			<p class="s-eyebrow">Inside SATAR</p>
+			<p class="s-eyebrow">Screens</p>
 			<h2 id="inside-title" class="display">Calm screens for <em>clear decisions.</em></h2>
 			<p class="lede">Drag, scroll or use the arrows to look around the app.</p>
 		</header>
@@ -282,7 +279,7 @@
 <section class="roles" id="roles" aria-labelledby="roles-title">
 	<div class="wrap">
 		<header class="section-head s-reveal">
-			<p class="s-eyebrow">Who uses it</p>
+			<p class="s-eyebrow">Roles</p>
 			<h2 id="roles-title" class="display">A clear part <em>for everyone.</em></h2>
 		</header>
 		<ul class="role-grid">
