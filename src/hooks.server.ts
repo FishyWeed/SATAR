@@ -7,7 +7,7 @@ import { db, organization, user } from '#lib/server/db/index.ts';
 import { homeOf } from '#lib/server/auth.ts';
 import type { Role } from '#lib/rules.ts';
 
-// Pages open before sign-in ('/' is the landing page). /reset-password and /join/ also serve signed-in users.
+// Pages open before sign-in ('/' is the landing page, open to everyone). /reset-password and /join/ also serve signed-in users.
 const PUBLIC = ['/login', '/signup', '/forgot-password', '/reset-password', '/auth/', '/join/'];
 // Pages for every signed-in user, wherever they are in the sign-up journey.
 const ANYONE = ['/profile', '/reset-password', '/auth/', '/join/'];
@@ -40,7 +40,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		if (path !== '/' && !PUBLIC.some((p) => under(path, p))) redirect(303, '/login');
 	} else {
 		const home = homeOf(me);
-		if (path === '/' || under(path, '/login') || under(path, '/signup') || under(path, '/forgot-password')) redirect(303, home);
+		if (under(path, '/login') || under(path, '/signup') || under(path, '/forgot-password')) redirect(303, home);
 		if (!ANYONE.some((p) => under(path, p))) {
 			if (me.role === 'Owner') { if (!under(path, '/owner')) redirect(303, home); }
 			else if (!me.orgId) { if (!under(path, '/welcome')) redirect(303, home); }

@@ -79,7 +79,7 @@
 	<div class="s-shell">
 		<header class="s-topbar">
 			<button class="s-btn s-btn--ghost s-btn--icon s-menu-btn" type="button" aria-label="Open menu" aria-controls="drawer" aria-expanded={menuOpen} onclick={openDrawer}>{@html icon('menu', 's-ic--md')}</button>
-			{@render brand(menu[0][0])}
+			{@render brand('/')}
 			<nav class="s-nav" aria-label="{user.role} menu">
 				{#each menu as [href, ic, label] (href)}<a {href} aria-current={href === current ? 'page' : undefined}>{@html icon(ic, 's-ic--md')}{label}</a>{/each}
 			</nav>

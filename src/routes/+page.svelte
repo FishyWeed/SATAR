@@ -1,13 +1,54 @@
 <script lang="ts">
-	// Landing page for visitors (design system HeroScene, GlowCard and CurvedGallery). The hook sends signed-in users to their home page.
+	// Landing page (design system HeroScene, GlowCard and CurvedGallery). A signed-in user sees Open SATAR instead of Sign in and Get started.
 	// Every link here reloads the page, so the scroll script of the landing page (static/js/landing.js) never runs on another page.
 	import { onMount } from 'svelte';
+	import type { PageProps } from './$types';
+
+	let { data }: PageProps = $props();
+
+	// The gallery stays in view while the page scrolls past its track; the scroll position picks the card, in both directions.
+	function scrollGallery() {
+		const gal = document.querySelector<HTMLElement>('.inside [data-gallery]')!, track = document.querySelector<HTMLElement>('.inside__track')!;
+		const vp = () => gal.querySelector<HTMLElement>('.s-gallery__viewport');
+		const progress = () => Math.min(1, Math.max(0, (gal.getBoundingClientRect().bottom - track.getBoundingClientRect().top) / track.offsetHeight));
+		const sync = () => { const v = vp(); if (v) v.scrollLeft = progress() * (v.scrollWidth - v.clientWidth); };
+		// Scroll the page to card i, so the arrows, the keys and a click on a side card agree with the page scroll.
+		const goTo = (i: number) => {
+			const n = gal.querySelectorAll('.s-gallery__card').length, target = Math.min(n - 1, Math.max(0, i)) / Math.max(1, n - 1);
+			const stuckBottom = parseFloat(getComputedStyle(gal).top) + gal.offsetHeight;
+			window.scrollBy({ top: track.getBoundingClientRect().top - (stuckBottom - target * track.offsetHeight), behavior: 'smooth' });
+		};
+		const current = () => Math.round(progress() * (gal.querySelectorAll('.s-gallery__card').length - 1));
+		// The wheel scrolls the page (and so the gallery), not the gallery alone.
+		const wheel = (e: WheelEvent) => { if (Math.abs(e.deltaY) >= Math.abs(e.deltaX)) e.stopPropagation(); };
+		const click = (e: MouseEvent) => {
+			const t = e.target as HTMLElement, g = t.closest('[data-g]')?.getAttribute('data-g'), card = t.closest('.s-gallery__card');
+			if (g === 'next' || g === 'prev') { e.stopPropagation(); goTo(current() + (g === 'next' ? 1 : -1)); }
+			else if (card && !card.classList.contains('is-center')) { e.stopPropagation(); goTo([...gal.querySelectorAll('.s-gallery__card')].indexOf(card)); }
+		};
+		const KEYS: Record<string, (i: number) => number> = { ArrowRight: (i) => i + 1, ArrowLeft: (i) => i - 1, Home: () => 0, End: () => 99 };
+		const key = (e: KeyboardEvent) => { if (KEYS[e.key]) { e.preventDefault(); e.stopPropagation(); goTo(KEYS[e.key](current())); } };
+		gal.addEventListener('wheel', wheel, { capture: true });
+		gal.addEventListener('click', click, { capture: true });
+		gal.addEventListener('keydown', key, { capture: true });
+		addEventListener('scroll', sync, { passive: true });
+		addEventListener('resize', sync);
+		requestAnimationFrame(sync);
+		return () => {
+			gal.removeEventListener('wheel', wheel, { capture: true });
+			gal.removeEventListener('click', click, { capture: true });
+			gal.removeEventListener('keydown', key, { capture: true });
+			removeEventListener('scroll', sync);
+			removeEventListener('resize', sync);
+		};
+	}
 
 	onMount(() => {
 		document.body.classList.add('landing');
 		const s = Object.assign(document.createElement('script'), { src: '/js/landing.js' });
 		document.body.append(s);
-		return () => { document.body.classList.remove('landing'); s.remove(); };
+		const stopGallery = scrollGallery();
+		return () => { document.body.classList.remove('landing'); s.remove(); stopGallery(); };
 	});
 </script>
 
@@ -35,8 +76,12 @@
 		<a href="#roles">Roles</a>
 	</nav>
 	<div class="s-pubheader__end">
-		<a class="s-btn s-btn--ghost hide-phone" href="/login">Sign in</a>
-		<a class="s-btn s-btn--primary" href="/signup">Get started</a>
+		{#if data.home}
+			<a class="s-btn s-btn--primary" href={data.home}>Open SATAR</a>
+		{:else}
+			<a class="s-btn s-btn--ghost hide-phone" href="/login">Sign in</a>
+			<a class="s-btn s-btn--primary" href="/signup">Get started</a>
+		{/if}
 	</div>
 </header>
 
@@ -80,8 +125,12 @@
 		</h1>
 		<p class="hero__lede hero-in" style="--i:4">SATAR is the approval register for generative AI at work. Staff check what is approved, request what is new, and every decision is kept for audit.</p>
 		<div class="hero__ctas hero-in" style="--i:5">
-			<a class="s-btn s-btn--primary s-btn--lg glow" href="/signup">Get started<svg class="s-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-			<a class="s-btn s-btn--glass s-btn--lg" href="/login">Sign in</a>
+			{#if data.home}
+				<a class="s-btn s-btn--primary s-btn--lg glow" href={data.home}>Open SATAR<svg class="s-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+			{:else}
+				<a class="s-btn s-btn--primary s-btn--lg glow" href="/signup">Get started<svg class="s-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+				<a class="s-btn s-btn--glass s-btn--lg" href="/login">Sign in</a>
+			{/if}
 		</div>
 	</div>
 	<img class="scene__ground" data-speed="-0.12" src="/img/forest-ground.webp" srcset="/img/forest-ground-sm.webp 1200w, /img/forest-ground.webp 2400w" sizes="100vw" alt="" aria-hidden="true" />
@@ -209,6 +258,7 @@
 		<img src="/img/shots/admin.webp" alt="Administrator dashboard with a chart of tools by risk level" data-caption="Dashboard" />
 		<img src="/img/shots/report.webp" alt="Printable AI tool register report" data-caption="Printable report" />
 	</div>
+	<div class="inside__track" aria-hidden="true"></div>
 </section>
 
 <!-- ============ Roles ============ -->
@@ -248,7 +298,7 @@
 		<img src="/img/logos/noctua-mark-lumen.svg" alt="" class="final__owl" />
 		<h2 id="final-title" class="display">Create your organization's <em>register.</em></h2>
 		<p class="lede">Set it up in a few minutes. Invite your team with a single-use link.</p>
-		<a class="s-btn s-btn--primary s-btn--lg glow" href="/signup">Get started<svg class="s-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+		<a class="s-btn s-btn--primary s-btn--lg glow" href={data.home ?? '/signup'}>{data.home ? 'Open SATAR' : 'Get started'}<svg class="s-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
 	</div>
 </section>
 </main>

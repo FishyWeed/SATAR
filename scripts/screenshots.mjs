@@ -10,6 +10,7 @@ import postgres from 'postgres';
 process.loadEnvFile();
 const [accountsFile, outDir] = process.argv.slice(2);
 const A = JSON.parse(readFileSync(accountsFile, 'utf8'));
+const LANDING_H = 1900;
 const BASE = 'http://localhost:8888', EDGE = 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe', PORT = 9333;
 const sql = postgres(process.env.DATABASE_URL, { prepare: false });
 mkdirSync(outDir, { recursive: true });
@@ -84,6 +85,8 @@ const send = (method, params = {}) => new Promise((resolve, reject) => {
 const loaded = async () => { for (let i = 0; i < 80 && !events.includes('Page.loadEventFired'); i++) await new Promise((r) => setTimeout(r, 100)); events.length = 0; };
 
 await send('Page.enable'); await send('Network.enable');
+// Reduced motion shows every scroll reveal at once, so nothing is blurred in a full-page screenshot.
+await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
 for (const [n, who, path, click] of SHOTS) {
 	await send('Network.clearBrowserCookies');
 	if (who) await send('Network.setCookies', { cookies: S[who] });
@@ -94,7 +97,8 @@ for (const [n, who, path, click] of SHOTS) {
 	await send('Emulation.setDeviceMetricsOverride', { width: 1000, height: 200, deviceScaleFactor: 1, mobile: false });
 	const { result } = await send('Runtime.evaluate', { expression: 'Math.ceil(document.querySelector("main").getBoundingClientRect().bottom)' });
 	// A popup is drawn over the window, so its screenshot needs a window tall enough for the popup.
-	const height = Math.max(click ? 820 : 300, result.value + 8);
+	// The landing page is very tall: keep its top part (forest, register preview and problem), so that it stays readable on a report page.
+	const height = path === '/' ? LANDING_H : Math.max(click ? 820 : 300, result.value + 8);
 	await send('Emulation.setDeviceMetricsOverride', { width: 1000, height, deviceScaleFactor: 1, mobile: false });
 	if (click) {
 		await send('Runtime.evaluate', { expression: `document.querySelector(${JSON.stringify(click)}).click()` });

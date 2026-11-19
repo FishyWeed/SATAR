@@ -51,3 +51,8 @@ body.landing::before { display: none; }
 .s-drawer nav button { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px; padding: 0 12px; border: 0; border-radius: 10px; background: none; color: var(--text); font: inherit; font-weight: 500; text-align: left; cursor: pointer; }
 .s-drawer nav button:hover { background: var(--surface-raised); }
 .s-sub { display: block; }
+/* Landing gallery: it stays in view (sticky) while the page scrolls past the track, and the scroll picks the card (+page.svelte). */
+body.landing .inside { overflow: clip; }
+.inside .s-gallery { position: sticky; top: max(0px, calc(50svh - 310px)); }
+.inside__track { height: 240svh; }
+@media (max-width: 767px) { .inside .s-gallery { top: max(0px, calc(50svh - 250px)); } .inside__track { height: 180svh; } }

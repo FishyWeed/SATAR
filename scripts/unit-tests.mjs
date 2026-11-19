@@ -219,7 +219,8 @@ record(22, [(await admin.go('/admin/catalogue?/add', { name: 'A' })).msg, (await
 		/<h2>AI Tool Register Report<\/h2>/.test(r.html) ? 'The AI Tool Register Report appears' : 'No report']);
 }
 // 26 Landing page and 28 Check your email (record numbers = screen numbers of the report)
-record(26, [(await new Session().go('/')).h1.startsWith('Keep watch over') ? 'The landing page appears with Get started and Sign in' : 'Wrong page', appears(await emp1.go('/'))]);
+record(26, [(await new Session().go('/')).h1.startsWith('Keep watch over') ? 'The landing page appears with Get started and Sign in' : 'Wrong page',
+	(await emp1.go('/')).html.includes('Open SATAR') ? 'The landing page appears with Open SATAR' : 'Wrong page']);
 record(28, [(await new Session().go('/signup/check-email?email=gopal%40example.com')).html.includes('gopal@example.com') ? 'The Check your email page appears with the email address' : 'Wrong page']);
 // 27 Sign Up: only the checks before Supabase sends an email (no email is sent in the tests)
 {
@@ -287,7 +288,7 @@ const inviteLink = async (role, email = '') => (await admin.go('/admin/users?/in
 	const change = await s.go('/reset-password');
 	const out = await s.go('/profile?/signout', {});
 	const after = await s.go('/employee');
-	record(25, [appears(change), after.path === '/login' ? `The user is signed out and the ${out.h1} page appears` : 'Still signed in']);
+	record(25, [appears(change), after.path === '/login' && out.path === '/' ? 'The user is signed out and the landing page appears' : 'Still signed in']);
 	const r = [(await emp2.go('/reset-password', { password: 'abc', confirm: 'abc' })).msg, (await emp2.go('/reset-password', { password: 'NewPass#2027', confirm: 'NewPass#2028' })).msg];
 	const ok = await emp2.go('/reset-password', { password: 'NewPass#2027', confirm: 'NewPass#2027' });
 	r.push(ok.path === '/login' && /Password saved/.test(ok.html) ? 'Password saved. Please sign in' : ok.msg || 'No message');
