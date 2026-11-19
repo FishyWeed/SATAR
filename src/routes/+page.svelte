@@ -43,12 +43,29 @@
 		};
 	}
 
+	// Back to top and skip to content without a #main in the URL (the page scrolls as if it was reloaded).
+	let scrolled = $state(false);
+
+	function toTop(e: MouseEvent) {
+		e.preventDefault();
+		window.scrollTo({ top: 0 });
+	}
+	function toMain(e: MouseEvent) {
+		e.preventDefault();
+		document.getElementById('main')?.focus();
+	}
+
 	onMount(() => {
+		if (location.hash === '#main') history.replaceState(history.state, '', '/');
 		document.body.classList.add('landing');
 		const s = Object.assign(document.createElement('script'), { src: '/js/landing.js' });
 		document.body.append(s);
 		const stopGallery = scrollGallery();
-		return () => { document.body.classList.remove('landing'); s.remove(); stopGallery(); };
+		// The back-to-top button shows once the hero is out of view.
+		const onScroll = () => (scrolled = scrollY > innerHeight);
+		addEventListener('scroll', onScroll, { passive: true });
+		onScroll();
+		return () => { document.body.classList.remove('landing'); s.remove(); stopGallery(); removeEventListener('scroll', onScroll); };
 	});
 </script>
 
@@ -60,11 +77,11 @@
 </svelte:head>
 
 <div data-sveltekit-reload style="display:contents">
-<a class="s-skip" href="#main">Skip to content</a>
+<a class="s-skip" href="/" onclick={toMain}>Skip to content</a>
 
 <!-- ============ Header ============ -->
 <header class="s-pubheader" id="top">
-	<a class="s-brand" href="#main" aria-label="SATAR by Noctua, back to top">
+	<a class="s-brand" href="/" onclick={toTop} aria-label="SATAR by Noctua, back to top">
 		<img src="/img/logos/satar-mark-lumen.svg" alt="" style="height:22px" />
 		<span class="s-brand__word">SATAR</span>
 		<span class="brand-by">by Noctua</span>
@@ -303,13 +320,17 @@
 </section>
 </main>
 
+<button class="s-btn s-btn--glass s-btn--icon to-top" class:is-shown={scrolled} type="button" onclick={toTop} aria-label="Back to top" tabindex={scrolled ? 0 : -1}>
+	<svg class="s-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+</button>
+
 <!-- ============ Footer ============ -->
 <footer class="s-footer">
 	<div class="s-footer__inner">
 		<div class="s-footer__brand">
 			<img src="/img/logos/satar-logo-lumen.svg" alt="SATAR, Shadow AI Tool Approval Register" style="height:56px;width:auto" />
 			<p>SATAR keeps a register of the generative AI tools your organization approves, with a two-step check and an audit log for compliance.</p>
-			<a class="noctua-sig" href="#main"><img src="/img/logos/noctua-logo-lumen.svg" alt="Noctua" style="height:32px;width:auto" /></a>
+			<a class="noctua-sig" href="/" onclick={toTop}><img src="/img/logos/noctua-logo-lumen.svg" alt="Noctua" style="height:32px;width:auto" /></a>
 		</div>
 		<div><h4>Product</h4><ul><li><a href="#how">How it works</a></li><li><a href="#features">Features</a></li><li><a href="#roles">Roles</a></li></ul></div>
 		<div><h4>Account</h4><ul><li><a href="/login">Sign in</a></li><li><a href="/signup">Sign up</a></li></ul></div>

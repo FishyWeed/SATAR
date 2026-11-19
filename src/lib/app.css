@@ -56,3 +56,9 @@ body.landing .inside { overflow: clip; }
 .inside .s-gallery { position: sticky; top: max(0px, calc(50svh - 310px)); }
 .inside__track { height: 240svh; }
 @media (max-width: 767px) { .inside .s-gallery { top: max(0px, calc(50svh - 250px)); } .inside__track { height: 180svh; } }
+/* Landing back-to-top button: fixed bottom right, inside the page gutter and the phone safe area. */
+.to-top { position: fixed; z-index: var(--z-sticky); right: calc(var(--gutter-desktop) + env(safe-area-inset-right)); bottom: calc(32px + env(safe-area-inset-bottom)); --_h: 48px; border-radius: 999px; opacity: 0; transform: translateY(12px); pointer-events: none; transition: opacity var(--duration-base) var(--ease-out), transform var(--duration-base) var(--ease-out); }
+.to-top.is-shown { opacity: 1; transform: none; pointer-events: auto; }
+@media (max-width: 1023px) { .to-top { right: calc(var(--gutter-tablet) + env(safe-area-inset-right)); bottom: calc(24px + env(safe-area-inset-bottom)); } }
+@media (max-width: 767px) { .to-top { right: calc(16px + env(safe-area-inset-right)); bottom: calc(16px + env(safe-area-inset-bottom)); --_h: 44px; } }
+@media (prefers-reduced-motion: reduce) { .to-top { transition: none; } }
