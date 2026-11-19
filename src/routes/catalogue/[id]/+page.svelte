@@ -10,7 +10,7 @@
 	const t = $derived(data.tool);
 </script>
 
-<PageHead title="Tool Details" desc="{t.tol_name} by {t.tol_vendor}" back={['/register', 'Back to register']} />
+<PageHead title="Tool Details" desc="{t.tol_name} by {t.tol_vendor}" back={['/catalogue', 'Back to catalogue']} />
 <div class="two-col">
 	<div class="s-stack" style="--_gap:24px">
 		{#if t.tol_status === 'Approved' && t.tol_data_class}
@@ -30,7 +30,7 @@
 				<div><dt>Tool name</dt><dd>{t.tol_name}</dd></div>
 				<div><dt>Vendor</dt><dd>{t.tol_vendor}</dd></div>
 				<div><dt>URL</dt><dd><a class="s-link" href={t.tol_url} rel="noopener noreferrer" target="_blank">{t.tol_url.replace(/^https?:\/\//, '')}{@html icon('external', 's-ic--xs')}</a></dd></div>
-				<div><dt>Category</dt><dd>{t.category}</dd></div>
+				<div><dt>Categories</dt><dd>{t.categories}</dd></div>
 				<div><dt>Status</dt><dd>{@html badge(t.tol_status)}</dd></div>
 				<div><dt>Risk level</dt><dd>{@html badge(t.tol_risk)}</dd></div>
 				<div><dt>Allowed data class</dt><dd>{@html badge(t.tol_data_class)}</dd></div>

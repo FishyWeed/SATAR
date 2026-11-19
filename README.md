@@ -10,11 +10,11 @@ Stack: SvelteKit 3 and Svelte 5 (TypeScript), Supabase (PostgreSQL, Auth, Row Le
 | --- | --- |
 | Visitor | `/` (landing page), `/signup`, `/login`, `/forgot-password`, `/reset-password`, `/join/[code]` (invite link) |
 | New user (no organization yet) | `/welcome`: create an organization (and become its Administrator) or join one with an invite link |
-| Every member | `/register` (search the AI tool register), `/register/[id]`, `/profile` |
+| Every member | `/catalogue` (Tools and Categories tabs; the Administrator also adds and edits categories), `/catalogue/[id]`, `/profile` |
 | Employee | `/employee`, `/requests/new`, `/requests`, `/requests/[id]` |
 | Manager | `/manager`, `/manager/requests`, `/manager/requests/[id]`, `/manager/tools` |
 | Reviewer | `/reviewer`, `/reviewer/queue`, `/reviewer/queue/[id]`, `/reviewer/overdue` |
-| Administrator | `/admin`, `/admin/users` (users, invite links, Edit user popup), `/admin/departments` (Edit popup: name and users), `/admin/catalogue` (categories and tools), `/admin/audit`, `/admin/reports` |
+| Administrator | `/admin`, `/admin/users` (users, invite links, Edit user popup), `/admin/departments` (Edit popup: name and users), `/admin/audit`, `/admin/reports` |
 | Owner (platform) | `/owner`: all organizations; rename, deactivate or reactivate one, or manage it with the rights of its Administrator |
 
 Every organization's rows carry its `org_id`, and every query filters by it. `src/hooks.server.ts` checks the session, the role and the organization before every page. The SQL rules in `drizzle/0003_rls_organizations.sql` also keep organizations apart in the database.

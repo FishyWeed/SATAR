@@ -29,7 +29,7 @@
 		<div class="s-card">
 			<h2 class="s-section-title" style="margin-bottom:12px">Tool</h2>
 			<dl class="s-dl">
-				<div><dt>Tool</dt><dd><a href="/register/{t.tol_id}">{t.tol_name}</a></dd></div>
+				<div><dt>Tool</dt><dd><a href="/catalogue/{t.tol_id}">{t.tol_name}</a></dd></div>
 				<div><dt>Vendor</dt><dd>{t.tol_vendor}</dd></div>
 				<div><dt>Website</dt><dd><a class="s-link" href={t.tol_url} rel="noopener noreferrer" target="_blank">{t.tol_url.replace(/^https?:\/\//, '')}</a></dd></div>
 				<div><dt>Tool status</dt><dd>{@html badge(t.tol_status)}{t.tol_review_date ? ` review date ${fmtDate(t.tol_review_date)}` : ''}</dd></div>

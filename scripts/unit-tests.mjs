@@ -95,21 +95,21 @@ record(4, [
 	appears(await mgr.go('/employee')),
 	appears(await new Session().go('/employee'))
 ]);
-// 5 AI Tool Register
+// 5 Catalogue, Tools tab
 {
-	const all = await emp1.go('/register?q='), chatQ = await emp1.go('/register?q=chat');
+	const all = await emp1.go('/catalogue?q='), chatQ = await emp1.go('/catalogue?q=chat');
 	const total = (await sql`select count(*)::int n from tool_t where org_id = ${demo}`)[0].n;
 	record(5, [
 		rows(all.html) === total ? 'All tools appear' : `${rows(all.html)} of ${total} tools appear`,
 		cellTexts(chatQ.html).every((t) => /chat/i.test(t)) && rows(chatQ.html) > 0 ? 'Only tools with "chat" in the name appear' : 'Other tools appear',
-		(await emp1.go('/register?q=' + 'x'.repeat(51))).msg,
-		(await emp1.go('/register?q=zzzz')).msg
+		(await emp1.go('/catalogue?q=' + 'x'.repeat(51))).msg,
+		(await emp1.go('/catalogue?q=zzzz')).msg
 	]);
 }
 // 6 Tool Details
 {
-	const ok = await emp1.go(`/register/${chat.tol_id}`);
-	record(6, [ok.h1 === 'Tool Details' && ok.html.includes('ChatGPT') ? `The details of tool ${chat.tol_id} appear` : 'Wrong page', (await emp1.go('/register/9999')).h1, (await emp1.go('/register/abc')).h1]);
+	const ok = await emp1.go(`/catalogue/${chat.tol_id}`);
+	record(6, [ok.h1 === 'Tool Details' && ok.html.includes('ChatGPT') ? `The details of tool ${chat.tol_id} appear` : 'Wrong page', (await emp1.go('/catalogue/9999')).h1, (await emp1.go('/catalogue/abc')).h1]);
 }
 // 7 Submit Tool Request (TC4 makes NotesBot); then MeetingAI so that emp1 has 2 requests for test 8
 {
@@ -184,9 +184,9 @@ record(11, [tc11a, (await mgr.go('/manager/requests')).msg]);
 // 17 Overdue Reviews: TC2 first (no overdue tool), then two tools with past review dates
 {
 	const none = (await rev.go('/reviewer/overdue')).msg;
-	await sql`insert into tool_t (org_id, tol_name, tol_vendor, tol_url, cat_id, tol_status, tol_risk, tol_data_class, tol_conditions, tol_review_date) values
-		(${demo}, 'Otter.ai', 'Otter', 'https://otter.ai', ${cat.cat_id}, 'Approved', 'Medium', 'Internal', 'Internal meetings only', '2026-11-01'),
-		(${demo}, 'Grammarly', 'Grammarly', 'https://grammarly.com', ${cat.cat_id}, 'Approved', 'Low', 'Public', 'Public text only', '2026-10-15')`;
+	await sql`insert into tool_t (org_id, tol_name, tol_vendor, tol_url, tol_status, tol_risk, tol_data_class, tol_conditions, tol_review_date) values
+		(${demo}, 'Otter.ai', 'Otter', 'https://otter.ai', 'Approved', 'Medium', 'Internal', 'Internal meetings only', '2026-11-01'),
+		(${demo}, 'Grammarly', 'Grammarly', 'https://grammarly.com', 'Approved', 'Low', 'Public', 'Public text only', '2026-10-15')`;
 	const r = await rev.go('/reviewer/overdue'), list = cellTexts(r.html);
 	record(17, [list.length === 2 && list[0].startsWith('Grammarly') ? 'The 2 tools appear, oldest first' : `${list.length} tools appear`, none]);
 }
@@ -217,7 +217,22 @@ record(11, [tc11a, (await mgr.go('/manager/requests')).msg]);
 		(await admin.go('/admin/departments?/edit', { id: mkt, name: 'Marketing' })).msg,
 		(await admin.go('/admin/departments?/edit', { id: mkt, name: 'Marketing', users: ben, moveTo: hr })).msg]);
 }
-record(22, [(await admin.go('/admin/catalogue?/add', { name: 'A' })).msg, (await admin.go('/admin/catalogue?/add', { name: 'Chatbot' })).msg, (await admin.go('/admin/catalogue?/add', { name: 'Image generator' })).msg]);
+// 22 Catalogue, Categories tab: the Add and Edit category popups (a tool can be in many categories), the None filter, and an Employee who tries to add
+{
+	// The Categories cell of the ChatGPT row (the keyword finds only ChatGPT).
+	const chatCats = async () => (await admin.go('/catalogue?q=ChatGPT')).html.match(/data-label="Categories">([^<]*)</)?.[1] ?? '';
+	const cases = [(await admin.go('/catalogue?/add', { name: 'A' })).msg, (await admin.go('/catalogue?/add', { name: 'Chatbot' })).msg,
+		(await admin.go('/catalogue?/add', { name: 'Image generator', tools: chat.tol_id })).msg];
+	cases.push((await chatCats()) === 'Chatbot, Image generator' ? 'ChatGPT appears in Chatbot and Image generator' : 'ChatGPT is not in exactly these two categories');
+	const [img] = await sql`select cat_id from category_t where org_id = ${demo} and cat_name = 'Image generator'`;
+	cases.push((await admin.go('/catalogue?/edit', { id: img.cat_id, name: 'Image generator' })).msg);
+	cases.push((await chatCats()) === 'Chatbot' ? 'ChatGPT is in Chatbot only' : 'ChatGPT is still in other categories');
+	const none = await admin.go('/catalogue?cat=none');
+	const [{ n }] = await sql`select count(*)::int n from tool_t t where org_id = ${demo} and not exists (select 1 from tool_category_t c where c.tol_id = t.tol_id)`;
+	cases.push(n > 0 && rows(none.html) === n ? 'Only the tools in no category appear' : `${rows(none.html)} tools appear, ${n} have no category`);
+	cases.push((await emp1.go('/catalogue?/add', { name: 'Hacked' })).msg);
+	record(22, cases);
+}
 // 23 Audit Log, 24 Reports (the plan uses November 2026, the month of the test run)
 {
 	const a = await admin.go('/admin/audit?from=2026-11-10&to=2026-11-01'), b = await admin.go('/admin/audit?from=2026-11-01&to=2026-11-30');
@@ -298,9 +313,9 @@ const inviteLink = async (role, email = '') => (await admin.go('/admin/users?/in
 // Isolation: organizations are apart: the Administrator of Other Org Sdn Bhd sees none of Noctua Demo's data
 {
 	const ot = await new Session().login('adm2');
-	const reg = await ot.go('/register'), names = cellTexts(reg.html);
+	const reg = await ot.go('/catalogue'), names = cellTexts(reg.html);
 	record('iso', [names.length === 1 && names[0].startsWith('SecretTool') ? 'Only SecretTool appears' : `${names.length} tools appear`,
-		(await ot.go(`/register/${chat.tol_id}`)).h1, (await emp1.go('/register?q=Secret')).msg,
+		(await ot.go(`/catalogue/${chat.tol_id}`)).h1, (await emp1.go('/catalogue?q=Secret')).msg,
 		(await ot.go('/admin/users')).html.includes('emp1@satar.test') ? 'Users of Noctua Demo appear' : 'Only the users of Other Org Sdn Bhd appear',
 		rows((await ot.go('/admin/audit?from=2026-11-01&to=2026-11-30')).html) === 0 ? 'No decisions of Noctua Demo appear' : 'Decisions of Noctua Demo appear']);
 }

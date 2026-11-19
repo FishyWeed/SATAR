@@ -15,7 +15,7 @@
 		<tbody>
 			{#each data.tools as t (t.id)}
 				<tr>
-					<td data-label="Tool"><a href="/register/{t.id}">{t.name}</a></td><td data-label="Status">{@html badge(t.status)}</td>
+					<td data-label="Tool"><a href="/catalogue/{t.id}">{t.name}</a></td><td data-label="Status">{@html badge(t.status)}</td>
 					<td data-label="Risk">{@html badge(t.risk)}</td><td data-label="Data class">{@html badge(t.dataClass)}</td><td data-label="Users" class="is-num">{t.users}</td>
 				</tr>
 			{/each}

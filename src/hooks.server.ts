@@ -11,7 +11,7 @@ import type { Role } from '#lib/rules.ts';
 const PUBLIC = ['/login', '/signup', '/forgot-password', '/reset-password', '/auth/', '/join/'];
 // Pages for every signed-in user, wherever they are in the sign-up journey.
 const ANYONE = ['/profile', '/reset-password', '/auth/', '/join/'];
-// Each role area and the only role that may open it. /register is open to every member.
+// Each role area and the only role that may open it. /catalogue is open to every member.
 const AREAS: [string, Role][] = [['/employee', 'Employee'], ['/requests', 'Employee'], ['/manager', 'Manager'], ['/reviewer', 'Reviewer'], ['/admin', 'Administrator']];
 const under = (path: string, p: string) => path === p || path.startsWith(p.endsWith('/') ? p : p + '/');
 

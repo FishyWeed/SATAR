@@ -1,6 +1,6 @@
 import { fail } from '@sveltejs/kit';
 import { and, eq, ilike } from 'drizzle-orm';
-import { category, db, request, tool } from '#lib/server/db/index.ts';
+import { category, db, request, tool, toolCategory } from '#lib/server/db/index.ts';
 import { member } from '#lib/server/auth.ts';
 import { isUniqueViolation } from '#lib/server/errors.ts';
 import { DATA_CLASSES, MSG, field, isLength, isUrl, oneOf } from '#lib/rules.ts';
@@ -26,7 +26,8 @@ export const actions: Actions = {
 		if (found) return fail(400, { ...v, error: MSG.toolExists });
 		try {
 			await db.transaction(async (tx) => {
-				const [t] = await tx.insert(tool).values({ org_id: me.orgId, tol_name: v.name, tol_vendor: v.vendor, tol_url: v.url, cat_id: v.cat }).returning({ id: tool.tol_id });
+				const [t] = await tx.insert(tool).values({ org_id: me.orgId, tol_name: v.name, tol_vendor: v.vendor, tol_url: v.url }).returning({ id: tool.tol_id });
+				await tx.insert(toolCategory).values({ org_id: me.orgId, tol_id: t.id, cat_id: v.cat });
 				await tx.insert(request).values({ org_id: me.orgId, usr_id: me.id, tol_id: t.id, req_purpose: v.purpose, req_data_class: dataClass });
 			});
 		} catch (e) {

@@ -14,7 +14,7 @@
 	<a class="s-btn s-btn--primary" href="/requests/new">{@html icon('plus')}New request</a>
 </PageHead>
 <Stats items={[
-	{ label: 'Approved tools', value: data.approvedTools, icon: 'shield-check', href: '/register' },
+	{ label: 'Approved tools', value: data.approvedTools, icon: 'shield-check', href: '/catalogue' },
 	{ label: 'My pending requests', value: data.pending, icon: 'clock', href: '/requests' },
 	{ label: 'My approved requests', value: data.approvedMine, icon: 'check-circle', href: '/requests' }
 ]} />

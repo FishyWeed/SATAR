@@ -54,14 +54,14 @@ const inviteCode = inviteHtml.match(/\/join\/([0-9a-f]+)</)?.[1];
 if (!inviteCode) throw new Error('no invite code for screenshot 30');
 
 const SHOTS = [
-	[1, null, '/login'], [2, null, '/forgot-password'], [3, 'emp1', '/reset-password'], [4, 'emp1', '/employee'], [5, 'emp1', '/register'],
-	[6, 'emp1', `/register/${chat.tol_id}`], [7, 'emp1', '/requests/new'], [8, 'emp1', '/requests'], [9, 'emp1', `/requests/${await id('NotesBot')}`],
+	[1, null, '/login'], [2, null, '/forgot-password'], [3, 'emp1', '/reset-password'], [4, 'emp1', '/employee'], [5, 'emp1', '/catalogue'],
+	[6, 'emp1', `/catalogue/${chat.tol_id}`], [7, 'emp1', '/requests/new'], [8, 'emp1', '/requests'], [9, 'emp1', `/requests/${await id('NotesBot')}`],
 	[10, 'mgr', '/manager'], [11, 'mgr', '/manager/requests'], [12, 'mgr', `/manager/requests/${await id('GitHub Copilot')}`], [13, 'mgr', '/manager/tools'],
 	[14, 'rev', '/reviewer'], [15, 'rev', '/reviewer/queue'], [16, 'rev', `/reviewer/queue/${await id('Perplexity')}`], [17, 'rev', '/reviewer/overdue'],
 	[18, 'admin', '/admin'], [19, 'admin', '/admin/users'], [20, 'admin', '/admin/users', 'main table button[data-edit-user]'], [21, 'admin', '/admin/departments'],
-	[22, 'admin', '/admin/catalogue'], [23, 'admin', `/admin/audit?${month}`], [24, 'admin', `/admin/reports?type=register&${month}`], [25, 'emp1', '/profile'],
+	[22, 'admin', '/catalogue?view=categories'], [23, 'admin', `/admin/audit?${month}`], [24, 'admin', `/admin/reports?type=register&${month}`], [25, 'emp1', '/profile'],
 	// The Catalogue again, with the edit popup of the first category open (the 4th item is a button to click).
-	['22b', 'admin', '/admin/catalogue', 'main table button[type=button]'],
+	['22b', 'admin', '/catalogue?view=categories', 'main table button[type=button]'],
 	// Organizations and accounts. 19b: the Invite user popup. 30: the invite as the new user (newbie) sees it before joining.
 	['19b', 'admin', '/admin/users', '#inviteBtn'],
 	['21b', 'admin', '/admin/departments', 'main table button[type=button]'],

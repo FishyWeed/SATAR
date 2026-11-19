@@ -32,7 +32,7 @@
 </div>
 <div class="s-card">
 	<dl class="s-dl">
-		<div><dt>Tool</dt><dd><a href="/register/{data.tool.tol_id}">{data.tool.tol_name}</a></dd></div>
+		<div><dt>Tool</dt><dd><a href="/catalogue/{data.tool.tol_id}">{data.tool.tol_name}</a></dd></div>
 		<div><dt>Purpose</dt><dd>{r.req_purpose}</dd></div>
 		<div><dt>Data class</dt><dd>{@html badge(r.req_data_class)}</dd></div>
 		<div><dt>Date</dt><dd>{fmtDate(r.req_date)}</dd></div>

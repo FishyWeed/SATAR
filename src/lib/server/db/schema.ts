@@ -1,6 +1,6 @@
 // The tables of SATAR (final report, section 7.0.6.2). Column names follow the data dictionary.
 // Every organization's data carries its org_id; one database serves all organizations.
-import { pgTable, integer, varchar, uuid, boolean, date, timestamp, unique } from 'drizzle-orm/pg-core';
+import { pgTable, integer, varchar, uuid, boolean, date, timestamp, unique, primaryKey } from 'drizzle-orm/pg-core';
 import type { UserRole, ToolStatus, Risk, DataClass, RequestStatus, Role } from '#lib/rules.ts';
 
 export const organization = pgTable('organization_t', {
@@ -42,13 +42,19 @@ export const tool = pgTable('tool_t', {
 	tol_name: varchar({ length: 60 }).notNull(),
 	tol_vendor: varchar({ length: 60 }).notNull(),
 	tol_url: varchar({ length: 200 }).notNull(),
-	cat_id: integer().notNull().references(() => category.cat_id),
 	tol_status: varchar({ length: 10 }).$type<ToolStatus>().notNull().default('Pending'),
 	tol_risk: varchar({ length: 6 }).$type<Risk>(),
 	tol_data_class: varchar({ length: 12 }).$type<DataClass>(),
 	tol_conditions: varchar({ length: 500 }),
 	tol_review_date: date({ mode: 'string' })
 }, (t) => [unique('tool_t_org_name_unique').on(t.org_id, t.tol_name)]);
+
+// A tool can be in many categories, or in none (shown as "-").
+export const toolCategory = pgTable('tool_category_t', {
+	org_id: integer().notNull().references(() => organization.org_id),
+	tol_id: integer().notNull().references(() => tool.tol_id, { onDelete: 'cascade' }),
+	cat_id: integer().notNull().references(() => category.cat_id, { onDelete: 'cascade' })
+}, (t) => [primaryKey({ columns: [t.tol_id, t.cat_id] })]);
 
 export const request = pgTable('request_t', {
 	req_id: integer().primaryKey().generatedAlwaysAsIdentity(),

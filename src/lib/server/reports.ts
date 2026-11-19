@@ -1,5 +1,6 @@
-import { and, asc, between, desc, eq, lt } from 'drizzle-orm';
-import { audit, category, db, department, request, tool, user } from './db/index.ts';
+import { and, asc, between, desc, eq, getTableColumns, lt } from 'drizzle-orm';
+import { audit, db, department, request, tool, user } from './db/index.ts';
+import { categoryNames } from './queries.ts';
 import { MSG, dayEnd, dayStart, fmtDate, fmtTime, isDate, today } from '#lib/rules.ts';
 
 /** Reads ?from=&to= (YYYY-MM-DD). Defaults to the last 30 days. Returns an error message for a bad range. */
@@ -24,10 +25,10 @@ export type ReportType = keyof typeof REPORTS;
 /** The four printed reports of section 7.0.8: column heads, rows and the total row, all as text. */
 export async function buildReport(orgId: number, type: ReportType, from: string, to: string): Promise<{ head: string[]; rows: string[][]; total: string[] | null }> {
 	if (type === 'register') {
-		const rows = await db.select().from(tool).innerJoin(category, eq(tool.cat_id, category.cat_id)).where(eq(tool.org_id, orgId)).orderBy(asc(tool.tol_name));
+		const rows = await db.select({ ...getTableColumns(tool), categories: categoryNames }).from(tool).where(eq(tool.org_id, orgId)).orderBy(asc(tool.tol_name));
 		return {
-			head: ['No.', 'Tool', 'Category', 'Status', 'Risk', 'Data class', 'Review date'],
-			rows: rows.map((r, i) => [String(i + 1), r.tool_t.tol_name, r.category_t.cat_name, r.tool_t.tol_status, r.tool_t.tol_risk ?? '-', r.tool_t.tol_data_class ?? '-', fmtDate(r.tool_t.tol_review_date)]),
+			head: ['No.', 'Tool', 'Categories', 'Status', 'Risk', 'Data class', 'Review date'],
+			rows: rows.map((r, i) => [String(i + 1), r.tol_name, r.categories, r.tol_status, r.tol_risk ?? '-', r.tol_data_class ?? '-', fmtDate(r.tol_review_date)]),
 			total: ['', `Total tools: ${rows.length}`, '', '', '', '', '']
 		};
 	}

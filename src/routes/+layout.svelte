@@ -12,10 +12,10 @@
 	// The menu of each role: [href, icon, label] (design system AppShell).
 	const MENU: Record<UserRole, [string, string, string][]> = {
 		Owner: [['/owner', 'building', 'Organizations']],
-		Employee: [['/employee', 'home', 'Home'], ['/register', 'register', 'AI tool register'], ['/requests', 'inbox', 'My requests']],
-		Manager: [['/manager', 'home', 'Home'], ['/manager/requests', 'inbox', 'Department requests'], ['/manager/tools', 'grid', 'Department tools'], ['/register', 'register', 'AI tool register']],
-		Reviewer: [['/reviewer', 'home', 'Home'], ['/reviewer/queue', 'shield-check', 'Risk review queue'], ['/reviewer/overdue', 'hourglass', 'Overdue reviews'], ['/register', 'register', 'AI tool register']],
-		Administrator: [['/admin', 'chart', 'Dashboard'], ['/admin/users', 'users', 'Users'], ['/admin/departments', 'building', 'Departments'], ['/register', 'register', 'Register'], ['/admin/catalogue', 'tag', 'Catalogue'], ['/admin/audit', 'history', 'Audit log'], ['/admin/reports', 'file', 'Reports']]
+		Employee: [['/employee', 'home', 'Home'], ['/catalogue', 'register', 'Catalogue'], ['/requests', 'inbox', 'My requests']],
+		Manager: [['/manager', 'home', 'Home'], ['/manager/requests', 'inbox', 'Department requests'], ['/manager/tools', 'grid', 'Department tools'], ['/catalogue', 'register', 'Catalogue']],
+		Reviewer: [['/reviewer', 'home', 'Home'], ['/reviewer/queue', 'shield-check', 'Risk review queue'], ['/reviewer/overdue', 'hourglass', 'Overdue reviews'], ['/catalogue', 'register', 'Catalogue']],
+		Administrator: [['/admin', 'chart', 'Dashboard'], ['/admin/users', 'users', 'Users'], ['/admin/departments', 'building', 'Departments'], ['/catalogue', 'register', 'Catalogue'], ['/admin/audit', 'history', 'Audit log'], ['/admin/reports', 'file', 'Reports']]
 	};
 	const AUTH = ['/login', '/signup', '/signup/check-email', '/forgot-password', '/reset-password'];
 

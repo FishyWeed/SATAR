@@ -1,4 +1,4 @@
-import { and, countDistinct, desc, eq } from 'drizzle-orm';
+import { and, countDistinct, desc, eq, sql } from 'drizzle-orm';
 import { db, department, request, tool, user } from './db/index.ts';
 import type { RequestStatus } from '#lib/rules.ts';
 
@@ -28,3 +28,15 @@ export function departmentTools(orgId: number, depId: number) {
 		.groupBy(tool.tol_id)
 		.orderBy(tool.tol_name);
 }
+
+/** The category names of a tool, joined by commas, or "-" for a tool in no category. */
+// The outer tool_t column is written in full: Drizzle leaves the table name out of a lone column in sql``, and then
+// tc.tol_id would match itself.
+export const categoryNames = sql<string>`coalesce((select string_agg(c.cat_name, ', ' order by c.cat_name) from tool_category_t tc
+	join category_t c on c.cat_id = tc.cat_id where tc.tol_id = "tool_t"."tol_id"), '-')`;
+
+/** Tools in one category (a cat_id), or in no category ('none'). */
+export const inCategory = (cat: number | 'none') =>
+	cat === 'none'
+		? sql`not exists (select 1 from tool_category_t tc where tc.tol_id = "tool_t"."tol_id")`
+		: sql`exists (select 1 from tool_category_t tc where tc.tol_id = "tool_t"."tol_id" and tc.cat_id = ${cat})`;

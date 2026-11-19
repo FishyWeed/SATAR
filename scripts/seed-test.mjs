@@ -44,16 +44,20 @@ try {
 	await sql`delete from audit_log_t where org_id = ${demo}`;
 	await sql`delete from request_t where org_id = ${demo}`;
 	await sql`delete from tool_t where org_id = ${demo} and tol_name <> 'ChatGPT'`;
-	await sql`delete from category_t c where org_id = ${demo} and cat_name not in ('Chatbot', 'Writing', 'Code assistant') and not exists (select 1 from tool_t t where t.cat_id = c.cat_id)`;
+	await sql`delete from category_t where org_id = ${demo} and cat_name not in ('Chatbot', 'Writing', 'Code assistant')`;
 	for (const d of ['IT', 'Finance', 'Marketing', 'HR']) await sql`insert into department_t (org_id, dep_name) values (${demo}, ${d}) on conflict do nothing`;
 	await sql`insert into department_t (org_id, dep_name) values (${other}, 'Operations') on conflict do nothing`;
 	for (const c of ['Chatbot', 'Writing', 'Code assistant']) await sql`insert into category_t (org_id, cat_name) values (${demo}, ${c}) on conflict do nothing`;
 	await sql`insert into category_t (org_id, cat_name) values (${other}, 'Chatbot') on conflict do nothing`;
+	// An approved tool in the Chatbot category only (the tests may add it to other categories).
 	const tool = async (o, name, vendor, url) => {
 		const [c] = await sql`select cat_id from category_t where org_id = ${o} and cat_name = 'Chatbot'`;
-		await sql`insert into tool_t (org_id, tol_name, tol_vendor, tol_url, cat_id, tol_status, tol_risk, tol_data_class, tol_conditions, tol_review_date)
-			values (${o}, ${name}, ${vendor}, ${url}, ${c.cat_id}, 'Approved', 'Medium', 'Internal', 'No customer data. Turn off chat history.', '2027-06-30')
+		await sql`insert into tool_t (org_id, tol_name, tol_vendor, tol_url, tol_status, tol_risk, tol_data_class, tol_conditions, tol_review_date)
+			values (${o}, ${name}, ${vendor}, ${url}, 'Approved', 'Medium', 'Internal', 'No customer data. Turn off chat history.', '2027-06-30')
 			on conflict do nothing`;
+		const [t] = await sql`select tol_id from tool_t where org_id = ${o} and tol_name = ${name}`;
+		await sql`delete from tool_category_t where tol_id = ${t.tol_id}`;
+		await sql`insert into tool_category_t (org_id, tol_id, cat_id) values (${o}, ${t.tol_id}, ${c.cat_id})`;
 	};
 	await tool(demo, 'ChatGPT', 'OpenAI', 'https://chatgpt.com');
 	await tool(other, 'SecretTool', 'Other vendor', 'https://secret.example');

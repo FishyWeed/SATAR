@@ -16,7 +16,7 @@
 		<tbody>
 			{#each data.tools as t (t.id)}
 				<tr>
-					<td data-label="Tool"><a href="/register/{t.id}">{t.name}</a></td><td data-label="Review date">{fmtDate(t.reviewDate)}</td>
+					<td data-label="Tool"><a href="/catalogue/{t.id}">{t.name}</a></td><td data-label="Review date">{fmtDate(t.reviewDate)}</td>
 					<td data-label="Days overdue" class="is-num"><b style="color:{t.daysOverdue > 30 ? 'var(--error-fg)' : 'var(--warning-fg)'}">{t.daysOverdue}</b></td>
 					<td data-label="Risk">{@html badge(t.risk)}</td>
 					<td data-label="Action" class="s-actions">{#if t.lastRequest}<a class="s-btn s-btn--secondary s-btn--sm" href="/reviewer/queue/{t.lastRequest}">{@html icon('refresh')}Re-check</a>{/if}</td>

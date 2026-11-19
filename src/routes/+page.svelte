@@ -158,8 +158,8 @@
 	</div>
 	<div class="window" id="window">
 		<div class="window__frame">
-			<div class="window__bar" aria-hidden="true"><span></span><span></span><span></span><b>satar.my/register</b></div>
-			<img src="/img/shots/register-desktop.webp" width="2560" height="1600" alt="The SATAR AI tool register: a table of tools with their status, risk level and allowed data class, and a filter bar to search by keyword and category." loading="lazy" />
+			<div class="window__bar" aria-hidden="true"><span></span><span></span><span></span><b>satar.my/catalogue</b></div>
+			<img src="/img/shots/register-desktop.webp" width="2560" height="1600" alt="The SATAR catalogue: a table of tools with their status, risk level and allowed data class, and a filter bar to search by keyword and category." loading="lazy" />
 		</div>
 		<div class="window__glint" aria-hidden="true"></div>
 	</div>
@@ -267,7 +267,7 @@
 		<img src="/img/shots/request-detail.webp" alt="Request details with a four-step progress indicator" data-caption="Follow a request" />
 		<img src="/img/shots/manager-review.webp" alt="Manager review with approve and reject choices" data-caption="Manager review" />
 		<img src="/img/shots/risk-check.webp" alt="Reviewer risk check with risk level, data class and decision" data-caption="Risk check" />
-		<img src="/img/shots/register.webp" alt="AI tool register on a phone" data-caption="Register on a phone" />
+		<img src="/img/shots/register.webp" alt="The catalogue of AI tools on a phone" data-caption="Catalogue on a phone" />
 		<img src="/img/shots/tool-detail.webp" alt="Tool details showing the data class it is approved for" data-caption="Tool details" />
 		<img src="/img/shots/admin.webp" alt="Administrator dashboard with a chart of tools by risk level" data-caption="Dashboard" />
 		<img src="/img/shots/report.webp" alt="Printable AI tool register report" data-caption="Printable report" />
