@@ -130,7 +130,7 @@ record(4, [
 // 9 Request Details
 {
 	const id = await reqId('NotesBot'), own = await emp1.go(`/requests/${id}`);
-	record(9, [own.h1 === 'Request Details' && own.html.includes('class="steps"') ? 'The details and the steps of the request appear' : 'Wrong page', (await emp2.go(`/requests/${id}`)).h1]);
+	record(9, [own.h1 === 'Request Details' && own.html.includes('s-steps') ? 'The details and the steps of the request appear' : 'Wrong page', (await emp2.go(`/requests/${id}`)).h1]);
 }
 // more data for the manager and reviewer tests: one Marketing request, and PromptPal (Finance) for the Ban test
 await req(emp2, 'BrandWriter', 'Write campaign text');
@@ -219,7 +219,7 @@ record(22, [(await admin.go('/admin/catalogue?/add', { name: 'A' })).msg, (await
 		/<h2>AI Tool Register Report<\/h2>/.test(r.html) ? 'The AI Tool Register Report appears' : 'No report']);
 }
 // 26 Landing page and 28 Check your email (record numbers = screen numbers of the report)
-record(26, [(await new Session().go('/')).h1.startsWith('Know which AI tools') ? 'The landing page appears with Get started and Sign in' : 'Wrong page', appears(await emp1.go('/'))]);
+record(26, [(await new Session().go('/')).h1.startsWith('Keep watch over') ? 'The landing page appears with Get started and Sign in' : 'Wrong page', appears(await emp1.go('/'))]);
 record(28, [(await new Session().go('/signup/check-email?email=gopal%40example.com')).html.includes('gopal@example.com') ? 'The Check your email page appears with the email address' : 'Wrong page']);
 // 27 Sign Up: only the checks before Supabase sends an email (no email is sent in the tests)
 {

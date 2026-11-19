@@ -1,76 +1,108 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import Empty from '#lib/Empty.svelte';
+	import Field from '#lib/Field.svelte';
 	import Msg from '#lib/Msg.svelte';
+	import PageHead from '#lib/PageHead.svelte';
 	import { fmtDate } from '#lib/rules.ts';
+	import { badge, icon } from '#lib/ui.ts';
 	import type { PageProps } from './$types';
+	import TableWrap from '#lib/TableWrap.svelte';
 
 	let { data, form }: PageProps = $props();
 	let dialog = $state<HTMLDialogElement>();
-	let copied = $state('');
 	const link = (code: string) => `${page.url.origin}/join/${code}`;
+	const openInvite = () => dialog && window.SATAR.dialog(dialog).open();
 
-	async function copy(text: string) {
-		await navigator.clipboard.writeText(text);
-		copied = text;
+	// Cancelling an invite stops its link, so it asks first.
+	function confirmCancel(e: SubmitEvent) {
+		const f = e.currentTarget as HTMLFormElement;
+		if (f.dataset.confirmed) return;
+		e.preventDefault();
+		window.SATAR.confirm({ title: 'Cancel this invite?', body: 'The link stops working. You can create a new one later.', confirm: 'Cancel invite', cancel: 'Keep invite' })
+			.then((ok) => { if (ok) { f.dataset.confirmed = '1'; f.requestSubmit(); } });
 	}
 </script>
 
-<h1>Users</h1>
+<PageHead title="Users" desc="People in your organization, their roles and open invites.">
+	<button class="s-btn s-btn--primary" type="button" id="inviteBtn" onclick={openInvite}>{@html icon('plus')}Invite user</button>
+</PageHead>
 <Msg {form} />
 {#if form && 'link' in form && form.link}
-	<div class="invite-box">
-		<code>{form.link}</code>
-		<button type="button" onclick={() => copy(String(form.link))}>{copied === form.link ? 'Copied' : 'Copy link'}</button>
-		<p class="muted">The link works once and expires in 7 days.</p>
+	<div class="s-card" style="margin-bottom:24px">
+		<div class="s-linkbox">
+			<span class="s-label">Invite link</span>
+			<div class="s-linkbox__row">
+				<code>{form.link}</code>
+				<button class="s-btn s-btn--secondary s-copy" type="button" data-copy={form.link}>{@html icon('copy')}Copy</button>
+				<span class="s-sr" aria-live="polite"></span>
+			</div>
+			<div class="s-linkbox__meta"><span>{@html icon('calendar', 's-ic--xs')}Expires in 7 days</span><span>{@html icon('lock', 's-ic--xs')}Single use</span></div>
+		</div>
 	</div>
 {/if}
-<p><button type="button" onclick={() => dialog?.showModal()}>Invite user</button></p>
 
-<div class="table-wrap">
-	<table>
-		<thead><tr><th>Name</th><th>Email id</th><th>Role</th><th>Department</th><th>Active</th><th></th></tr></thead>
-		<tbody>
-			{#each data.users as u (u.id)}
-				<tr>
-					<td>{u.first} {u.last}</td><td>{u.email}</td><td>{u.role}</td><td>{u.department}</td><td>{u.active ? 'Yes' : 'No'}</td>
-					<td><a href="/admin/users/{u.id}">Edit</a></td>
-				</tr>
-			{/each}
-		</tbody>
-	</table>
-</div>
+<TableWrap label="Users" md>
+	<thead><tr><th scope="col">Name</th><th scope="col">Email id</th><th scope="col">Role</th><th scope="col">Department</th><th scope="col">Status</th><th scope="col" class="s-actions"><span class="s-sr">Action</span></th></tr></thead>
+	<tbody>
+		{#each data.users as u (u.id)}
+			<tr>
+				<td data-label="Name"><a href="/admin/users/{u.id}">{u.first} {u.last}</a></td><td data-label="Email id">{u.email}</td>
+				<td data-label="Role">{u.role}</td><td data-label="Department">{u.department}</td>
+				<td data-label="Status">{@html badge(u.active ? 'active' : 'inactive')}</td>
+				<td data-label="Action" class="s-actions"><a class="s-btn s-btn--secondary s-btn--sm" href="/admin/users/{u.id}">{@html icon('edit')}Edit</a></td>
+			</tr>
+		{/each}
+	</tbody>
+</TableWrap>
 
-<h2>Open invites</h2>
-{#if data.invites.length}
-	<div class="table-wrap">
-		<table>
-			<thead><tr><th>Role</th><th>Department</th><th>For email id</th><th>Expires</th><th></th><th></th></tr></thead>
+<section class="s-section">
+	<div class="s-section__head"><h2 class="s-section-title">Open invites</h2></div>
+	{#if data.invites.length}
+		<TableWrap label="Open invites" md>
+			<thead><tr><th scope="col">Role</th><th scope="col">Department</th><th scope="col">Email lock</th><th scope="col">Expires</th><th scope="col" class="s-actions"><span class="s-sr">Actions</span></th></tr></thead>
 			<tbody>
 				{#each data.invites as i (i.id)}
 					<tr>
-						<td>{i.role}</td><td>{i.department}</td><td>{i.email ?? 'Anyone with the link'}</td><td>{fmtDate(i.expires)}</td>
-						<td><button type="button" onclick={() => copy(link(i.code))}>{copied === link(i.code) ? 'Copied' : 'Copy link'}</button></td>
-						<td><form method="POST" action="?/cancel"><input type="hidden" name="id" value={i.id} /><button>Cancel invite</button></form></td>
+						<td data-label="Role">{i.role}</td><td data-label="Department">{i.department}</td>
+						<td data-label="Email lock">{#if i.email}<span class="s-row" style="--_gap:6px">{@html icon('lock', 's-ic--xs')}{i.email}</span>{:else}<span class="s-muted">Anyone with the link</span>{/if}</td>
+						<td data-label="Expires">{fmtDate(i.expires)}</td>
+						<td data-label="Actions" class="s-actions">
+							<form method="POST" action="?/cancel" class="s-row" style="justify-content:flex-end;--_gap:6px" onsubmit={confirmCancel}>
+								<button class="s-btn s-btn--secondary s-btn--sm s-copy" type="button" data-copy={link(i.code)}>{@html icon('copy')}Copy link</button>
+								<input type="hidden" name="id" value={i.id} /><button class="s-btn s-btn--tertiary s-btn--sm">Cancel invite</button>
+							</form>
+						</td>
 					</tr>
 				{/each}
 			</tbody>
-		</table>
-	</div>
-{:else}
-	<p class="msg" role="status">No open invites</p>
-{/if}
+		</TableWrap>
+	{:else}
+		<Empty ic="link" title="No open invites" text="Invite people with a single-use link.">
+			<button class="s-btn s-btn--secondary" type="button" onclick={openInvite}>{@html icon('plus')}Invite user</button>
+		</Empty>
+	{/if}
+</section>
 
 <!-- Invite popup: role and department of the new member, and an optional email id lock. -->
-<dialog bind:this={dialog} aria-labelledby="invite-title">
-	<form method="POST" action="?/invite" class="stack" novalidate>
-		<h2 id="invite-title">Invite user</h2>
-		<label>Role
-			<select name="role"><option value="">Select</option>{#each data.roles as r (r)}<option>{r}</option>{/each}</select>
-		</label>
-		<label>Department
-			<select name="dep"><option value="">Select</option>{#each data.departments as d (d.dep_id)}<option value={d.dep_id}>{d.dep_name}</option>{/each}</select>
-		</label>
-		<label>Email id (optional: only this person can use the link) <input name="email" type="email" maxlength="60" /></label>
-		<div class="row"><button>Create invite</button><button type="button" onclick={() => dialog?.close()}>Cancel</button></div>
+<dialog class="s-dialog" bind:this={dialog} aria-labelledby="invite-title">
+	<div class="s-dialog__head">
+		<h2 class="s-dialog__title" id="invite-title">Invite user</h2>
+		<button class="s-btn s-btn--ghost s-btn--icon" type="button" data-close aria-label="Close">{@html icon('x', 's-ic--md')}</button>
+	</div>
+	<form method="POST" action="?/invite" novalidate>
+		<div class="s-dialog__body">
+			<p class="s-muted" style="font-size:14px">Create a single-use link. Send it to the person by email or chat.</p>
+			<Field id="role" label="Role">
+				<select class="s-select" id="role" name="role"><option value="">Choose a role</option>{#each data.roles as r (r)}<option>{r}</option>{/each}</select>
+			</Field>
+			<Field id="dep" label="Department">
+				<select class="s-select" id="dep" name="dep"><option value="">Choose a department</option>{#each data.departments as d (d.dep_id)}<option value={d.dep_id}>{d.dep_name}</option>{/each}</select>
+			</Field>
+			<Field id="inviteEmail" label="Email id" optional hint="Only this email id can use the link.">
+				<input class="s-input" id="inviteEmail" name="email" type="email" maxlength="60" aria-describedby="inviteEmail-hint" />
+			</Field>
+		</div>
+		<div class="s-dialog__foot"><button class="s-btn s-btn--secondary" type="button" data-close>Cancel</button><button class="s-btn s-btn--primary">Create invite</button></div>
 	</form>
 </dialog>

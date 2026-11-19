@@ -18,6 +18,17 @@ declare global {
 			user?: App.Locals['user'];
 		}
 	}
+	/** The SATAR design system script (static/js/satar.js), loaded in app.html. */
+	interface Window {
+		SATAR: {
+			hydrate(root?: ParentNode): void;
+			reveal(root?: ParentNode): void;
+			theme(next?: 'day' | 'night'): 'day' | 'night';
+			drawer(el: Element): { open(): void; close(): void };
+			dialog(el: Element): { open(): void; close(value?: string): void };
+			confirm(opts: { title: string; body: string; confirm: string; cancel?: string; danger?: boolean }): Promise<boolean>;
+		};
+	}
 }
 
 export {};

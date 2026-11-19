@@ -11,7 +11,7 @@ export const load: PageServerLoad = async ({ url, locals }) => {
 	const categories = await db.select().from(category).where(eq(category.org_id, me.orgId)).orderBy(category.cat_name);
 	if (q.length > 50) return { categories, q, cat, tools: [], error: MSG.keyword };
 	const tools = await db
-		.select({ id: tool.tol_id, name: tool.tol_name, category: category.cat_name, status: tool.tol_status, risk: tool.tol_risk, dataClass: tool.tol_data_class })
+		.select({ id: tool.tol_id, name: tool.tol_name, vendor: tool.tol_vendor, category: category.cat_name, status: tool.tol_status, risk: tool.tol_risk, dataClass: tool.tol_data_class })
 		.from(tool).innerJoin(category, eq(tool.cat_id, category.cat_id))
 		.where(and(eq(tool.org_id, me.orgId), q ? ilike(tool.tol_name, likeText(q)) : undefined, cat ? eq(tool.cat_id, cat) : undefined))
 		.orderBy(tool.tol_name);

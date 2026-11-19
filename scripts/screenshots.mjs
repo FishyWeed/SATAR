@@ -60,7 +60,7 @@ const SHOTS = [
 	// The Catalogue again, with the edit popup of the first category open (the 4th item is a button to click).
 	['22b', 'admin', '/admin/catalogue', 'main table button[type=button]'],
 	// Organizations and accounts. 19b: the Invite user popup. 30: the invite as the new user (newbie) sees it before joining.
-	['19b', 'admin', '/admin/users', 'main > p > button'],
+	['19b', 'admin', '/admin/users', '#inviteBtn'],
 	[26, null, '/'], [27, null, '/signup'], [28, null, '/signup/check-email?email=gopal%40example.com'], [29, 'newbie', '/welcome'],
 	[30, 'newbie', `/join/${inviteCode}`], [31, 'owner', '/owner']
 ];

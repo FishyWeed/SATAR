@@ -1,6 +1,8 @@
 <script lang="ts">
+	import Banner from '#lib/Banner.svelte';
 	import Msg from '#lib/Msg.svelte';
 	import { fmtDate } from '#lib/rules.ts';
+	import { icon } from '#lib/ui.ts';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -14,24 +16,35 @@
 	};
 </script>
 
-<h1>Join an organization</h1>
-<Msg {form} />
-{#if data.invite && (data.state === 'ready' || data.state === 'signedOut')}
-	<div class="card invite-card">
-		<p>You are invited to join</p>
-		<h2>{data.invite.org}</h2>
-		<p>as <strong>{data.invite.role}</strong> in the <strong>{data.invite.department}</strong> department.</p>
-		<p class="muted">The invite expires on {fmtDate(data.invite.expires)}.</p>
-		{#if data.state === 'ready'}
-			<form method="POST"><button>Join {data.invite.org}</button></form>
-		{:else}
-			<div class="row">
-				<a class="button" href="/signup?next={next}">Create an account to join</a>
-				<a class="button" href="/login?next={next}">Sign in to join</a>
+<div class="join-wrap">
+	<div class="s-stack" style="--_gap:20px;width:100%;max-width:480px">
+		<Msg {form} />
+		{#if data.invite && (data.state === 'ready' || data.state === 'signedOut')}
+			<div class="s-invite">
+				<span class="s-eyebrow">Invitation</span>
+				<div class="s-invite__org">
+					<span class="s-invite__logo" aria-hidden="true">{data.invite.org[0]}</span>
+					<div><h1>Join an organization</h1><p class="s-muted">You are invited to join {data.invite.org}.</p></div>
+				</div>
+				<div class="s-invite__facts">
+					<div class="s-invite__fact"><span>Organization</span><b>{data.invite.org}</b></div>
+					<div class="s-invite__fact"><span>Role</span><b>{data.invite.role}</b></div>
+					<div class="s-invite__fact"><span>Department</span><b>{data.invite.department}</b></div>
+					<div class="s-invite__fact"><span>Expires</span><b>{fmtDate(data.invite.expires)}</b></div>
+				</div>
+				{#if data.state === 'ready'}
+					<form method="POST"><button class="s-btn s-btn--primary s-btn--block">Join {data.invite.org}</button></form>
+				{:else}
+					<div class="s-stack" style="--_gap:10px">
+						<a class="s-btn s-btn--primary" href="/login?next={next}">{@html icon('log-in')}Sign in to join</a>
+						<a class="s-btn s-btn--secondary" href="/signup?next={next}">Create an account to join</a>
+					</div>
+				{/if}
 			</div>
+		{:else}
+			<h1>Join an organization</h1>
+			<Banner kind="warning" title={PROBLEM[data.state]} />
+			<div><a class="s-btn s-btn--secondary" href="/" data-sveltekit-reload>{@html icon('home')}Home</a></div>
 		{/if}
 	</div>
-{:else}
-	<p class="msg error" role="alert">{PROBLEM[data.state]}</p>
-	<a class="button" href="/">Home</a>
-{/if}
+</div>
