@@ -1,6 +1,7 @@
 <script lang="ts">
 	import '#lib/app.css';
 	import { afterNavigate } from '$app/navigation';
+	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import type { UserRole } from '#lib/rules.ts';
 	import { icon } from '#lib/ui.ts';
@@ -14,7 +15,7 @@
 		Employee: [['/employee', 'home', 'Home'], ['/register', 'register', 'AI tool register'], ['/requests', 'inbox', 'My requests']],
 		Manager: [['/manager', 'home', 'Home'], ['/manager/requests', 'inbox', 'Department requests'], ['/manager/tools', 'grid', 'Department tools'], ['/register', 'register', 'AI tool register']],
 		Reviewer: [['/reviewer', 'home', 'Home'], ['/reviewer/queue', 'shield-check', 'Risk review queue'], ['/reviewer/overdue', 'hourglass', 'Overdue reviews'], ['/register', 'register', 'AI tool register']],
-		Administrator: [['/admin', 'chart', 'Dashboard'], ['/admin/users', 'users', 'Users'], ['/admin/departments', 'building', 'Departments'], ['/admin/catalogue', 'tag', 'Catalogue'], ['/admin/audit', 'history', 'Audit log'], ['/admin/reports', 'file', 'Reports'], ['/register', 'register', 'Register']]
+		Administrator: [['/admin', 'chart', 'Dashboard'], ['/admin/users', 'users', 'Users'], ['/admin/departments', 'building', 'Departments'], ['/register', 'register', 'Register'], ['/admin/catalogue', 'tag', 'Catalogue'], ['/admin/audit', 'history', 'Audit log'], ['/admin/reports', 'file', 'Reports']]
 	};
 	const AUTH = ['/login', '/signup', '/signup/check-email', '/forgot-password', '/reset-password'];
 
@@ -40,6 +41,18 @@
 		menuOpen = true;
 		drawer?.open();
 	}
+
+	// A click anywhere in a date box opens its calendar, not only a click on the calendar icon.
+	onMount(() => {
+		const open = (e: MouseEvent) => {
+			const t = e.target;
+			if (t instanceof HTMLInputElement && t.type === 'date' && !t.readOnly && !t.disabled) {
+				try { t.showPicker(); } catch { /* the calendar is open already, or the browser has no picker */ }
+			}
+		};
+		document.addEventListener('click', open);
+		return () => document.removeEventListener('click', open);
+	});
 
 	// After each page change: wire the design system behaviours of the new page and the phone menu.
 	afterNavigate(() => {
@@ -118,7 +131,7 @@
 		<main class="s-main view" id="main" tabindex="-1">
 			{#if user.asOwner}
 				<!-- No role: the page's own messages stay the first status on the page (the unit tests read it). -->
-				<div class="s-banner s-banner--info" style="margin-bottom:var(--space-6);align-items:center">
+				<div class="s-banner s-banner--info owner-bar">
 					{@html icon('building', 's-ic--md s-banner__icon')}
 					<div class="s-banner__body"><p><strong>You manage {user.orgName} as the platform Owner.</strong></p><p>You have the rights of its Administrator.</p></div>
 					<form method="POST" action="/owner?/leave" data-sveltekit-reload><button class="s-btn s-btn--secondary s-btn--sm">{@html icon('arrow-left')}Back to organizations</button></form>

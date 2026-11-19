@@ -11,6 +11,13 @@
 
 	let { data, form }: PageProps = $props();
 	let dialog = $state<HTMLDialogElement>();
+	let editDialog = $state<HTMLDialogElement>();
+	type Row = PageProps['data']['users'][number];
+	let editing = $state<Row | null>(null);
+	function edit(u: Row) {
+		editing = u;
+		if (editDialog) window.SATAR.dialog(editDialog).open();
+	}
 	const link = (code: string) => `${page.url.origin}/join/${code}`;
 	const openInvite = () => dialog && window.SATAR.dialog(dialog).open();
 
@@ -47,10 +54,10 @@
 	<tbody>
 		{#each data.users as u (u.id)}
 			<tr>
-				<td data-label="Name"><a href="/admin/users/{u.id}">{u.first} {u.last}</a></td><td data-label="Email id">{u.email}</td>
+				<td data-label="Name"><b style="color:var(--text-strong);font-weight:550">{u.first} {u.last}</b></td><td data-label="Email id">{u.email}</td>
 				<td data-label="Role">{u.role}</td><td data-label="Department">{u.department}</td>
 				<td data-label="Status">{@html badge(u.active ? 'active' : 'inactive')}</td>
-				<td data-label="Action" class="s-actions"><a class="s-btn s-btn--secondary s-btn--sm" href="/admin/users/{u.id}">{@html icon('edit')}Edit</a></td>
+				<td data-label="Action" class="s-actions"><button class="s-btn s-btn--secondary s-btn--sm" type="button" data-edit-user onclick={() => edit(u)}>{@html icon('edit')}Edit</button></td>
 			</tr>
 		{/each}
 	</tbody>
@@ -83,6 +90,44 @@
 		</Empty>
 	{/if}
 </section>
+
+<!-- Edit user popup: name, role, department and status. The email id belongs to the person's own account. -->
+<dialog class="s-dialog" bind:this={editDialog} aria-labelledby="edit-title">
+	<div class="s-dialog__head">
+		<h2 class="s-dialog__title" id="edit-title">Edit user</h2>
+		<button class="s-btn s-btn--ghost s-btn--icon" type="button" data-close aria-label="Close">{@html icon('x', 's-ic--md')}</button>
+	</div>
+	{#if editing}
+		{#key editing.id}
+			<form method="POST" action="?/edit" novalidate>
+				<div class="s-dialog__body">
+					<input type="hidden" name="id" value={editing.id} />
+					<div class="s-grid-2" style="gap:16px">
+						<Field id="first" label="First name"><input class="s-input" id="first" name="first" maxlength="50" value={editing.first} /></Field>
+						<Field id="last" label="Last name"><input class="s-input" id="last" name="last" maxlength="50" value={editing.last} /></Field>
+					</div>
+					<Field id="email" label="Email id" hint="People change their own email id.">
+						<input class="s-input" id="email" value={editing.email} readonly aria-readonly="true" aria-describedby="email-hint" />
+					</Field>
+					<div class="s-grid-2" style="gap:16px">
+						<Field id="editRole" label="Role">
+							<select class="s-select" id="editRole" name="role"><option value="">Choose a role</option>{#each data.roles as r (r)}<option selected={r === editing.role}>{r}</option>{/each}</select>
+						</Field>
+						<Field id="editDep" label="Department">
+							<select class="s-select" id="editDep" name="dep"><option value="">Choose a department</option>{#each data.departments as d (d.dep_id)}<option value={d.dep_id} selected={d.dep_id === editing.depId}>{d.dep_name}</option>{/each}</select>
+						</Field>
+					</div>
+					<label class="s-check">
+						<input type="checkbox" name="active" checked={editing.active} />
+						<span class="s-check__box"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg></span>
+						<span class="s-check__text">Active<small>Inactive users cannot sign in. Their decisions stay in the audit log.</small></span>
+					</label>
+				</div>
+				<div class="s-dialog__foot"><button class="s-btn s-btn--secondary" type="button" data-close>Cancel</button><button class="s-btn s-btn--primary">Save user</button></div>
+			</form>
+		{/key}
+	{/if}
+</dialog>
 
 <!-- Invite popup: role and department of the new member, and an optional email id lock. -->
 <dialog class="s-dialog" bind:this={dialog} aria-labelledby="invite-title">

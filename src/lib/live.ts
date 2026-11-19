@@ -7,7 +7,7 @@ export function liveFilter(form: HTMLFormElement) {
 	const run = async () => {
 		const field = document.activeElement instanceof HTMLInputElement && form.contains(document.activeElement) ? document.activeElement : null;
 		const caret = field?.selectionStart ?? null;
-		const query = new URLSearchParams(new FormData(form) as unknown as Record<string, string>).toString();
+		const query = new URLSearchParams([...new FormData(form)].map(([k, v]) => [k, String(v)])).toString();
 		await goto(`${location.pathname}${query ? `?${query}` : ''}`, { reset: false, replaceState: true });
 		// The page re-renders after the load, so find the field again by its id and put the cursor back.
 		const again = field?.id ? (document.getElementById(field.id) as HTMLInputElement | null) : null;

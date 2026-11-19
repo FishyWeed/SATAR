@@ -14,8 +14,8 @@ Stack: SvelteKit 3 and Svelte 5 (TypeScript), Supabase (PostgreSQL, Auth, Row Le
 | Employee | `/employee`, `/requests/new`, `/requests`, `/requests/[id]` |
 | Manager | `/manager`, `/manager/requests`, `/manager/requests/[id]`, `/manager/tools` |
 | Reviewer | `/reviewer`, `/reviewer/queue`, `/reviewer/queue/[id]`, `/reviewer/overdue` |
-| Administrator | `/admin`, `/admin/users` (users and invite links), `/admin/users/[id]`, `/admin/departments`, `/admin/catalogue` (categories and tools), `/admin/audit`, `/admin/reports` |
-| Owner (platform) | `/owner`: all organizations, deactivate or reactivate one |
+| Administrator | `/admin`, `/admin/users` (users, invite links, Edit user popup), `/admin/departments` (Edit popup: name and users), `/admin/catalogue` (categories and tools), `/admin/audit`, `/admin/reports` |
+| Owner (platform) | `/owner`: all organizations; rename, deactivate or reactivate one, or manage it with the rights of its Administrator |
 
 Every organization's rows carry its `org_id`, and every query filters by it. `src/hooks.server.ts` checks the session, the role and the organization before every page. The SQL rules in `drizzle/0003_rls_organizations.sql` also keep organizations apart in the database.
 
@@ -72,6 +72,8 @@ You need Node.js 22 or 24 and a free Supabase project.
 - `npm run check`: type check.
 - `npm run build`, then `npm run preview`: production build on port 8888.
 - `npm run db:generate`: new migration after a change to `src/lib/server/db/schema.ts`.
+- `npm run seed-catalogue -- "Your organization"`: adds a demo catalogue of 50 AI tools in 11 categories (`scripts/catalogue.json`).
+- `npm run seed-test -- ../test-accounts.json`: test data and test accounts for the unit tests (`scripts/unit-tests.mjs`) and the screenshots (`scripts/screenshots.mjs`); the passwords go to the file you name, outside git.
 
 ## Deploy to Netlify
 

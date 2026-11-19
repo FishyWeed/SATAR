@@ -25,13 +25,13 @@ async function org(name) {
 }
 const people = [
 	// email, first, last, role, department, organization
-	['admin@satar.test', 'Test', 'Admin', 'Administrator', 'IT', 'Noctua Demo'],
+	['adm1@satar.test', 'Adam', 'Admin', 'Administrator', 'IT', 'Noctua Demo'],
 	['emp1@satar.test', 'Aina', 'Employee', 'Employee', 'Finance', 'Noctua Demo'],
 	['emp2@satar.test', 'Ben', 'Employee', 'Employee', 'Marketing', 'Noctua Demo'],
-	['mgr@satar.test', 'Chong', 'Manager', 'Manager', 'Finance', 'Noctua Demo'],
-	['rev@satar.test', 'Devi', 'Reviewer', 'Reviewer', 'IT', 'Noctua Demo'],
+	['mgr1@satar.test', 'Chong', 'Manager', 'Manager', 'Finance', 'Noctua Demo'],
+	['rvw1@satar.test', 'Devi', 'Reviewer', 'Reviewer', 'IT', 'Noctua Demo'],
 	['mgr2@satar.test', 'Elan', 'Manager', 'Manager', 'HR', 'Noctua Demo'],
-	['other@satar.test', 'Farah', 'Admin', 'Administrator', 'Operations', 'Other Org Sdn Bhd'],
+	['adm2@satar.test', 'Farah', 'Admin', 'Administrator', 'Operations', 'Other Org Sdn Bhd'],
 	['newbie@satar.test', 'Gopal', 'Newcomer', null, null, null],
 	['newbie2@satar.test', 'Hana', 'Newcomer', null, null, null],
 	['owner@satar.test', 'Platform', 'Owner', 'Owner', null, null]
@@ -40,6 +40,11 @@ const accounts = {};
 try {
 	const demo = await org('Noctua Demo'), other = await org('Other Org Sdn Bhd');
 	await sql`update organization_t set org_active = true where org_id in (${demo}, ${other})`;
+	// Every test run starts from the same register: no requests or decisions, and only ChatGPT (seed-catalogue adds the 50 demo tools).
+	await sql`delete from audit_log_t where org_id = ${demo}`;
+	await sql`delete from request_t where org_id = ${demo}`;
+	await sql`delete from tool_t where org_id = ${demo} and tol_name <> 'ChatGPT'`;
+	await sql`delete from category_t c where org_id = ${demo} and cat_name not in ('Chatbot', 'Writing', 'Code assistant') and not exists (select 1 from tool_t t where t.cat_id = c.cat_id)`;
 	for (const d of ['IT', 'Finance', 'Marketing', 'HR']) await sql`insert into department_t (org_id, dep_name) values (${demo}, ${d}) on conflict do nothing`;
 	await sql`insert into department_t (org_id, dep_name) values (${other}, 'Operations') on conflict do nothing`;
 	for (const c of ['Chatbot', 'Writing', 'Code assistant']) await sql`insert into category_t (org_id, cat_name) values (${demo}, ${c}) on conflict do nothing`;

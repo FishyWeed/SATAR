@@ -17,6 +17,7 @@
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
 		"seed-test": "node scripts/seed-test.mjs",
+		"seed-catalogue": "node scripts/seed-catalogue.mjs",
 		"make-owner": "node scripts/make-owner.mjs"
 	},
 	"devDependencies": {

@@ -74,8 +74,8 @@ for (const u of authList.users.filter((x) => x.email === 'aina@satar.test')) awa
 const [cat] = await sql`select cat_id from category_t where org_id = ${demo} and cat_name = 'Chatbot'`;
 const [chat] = await sql`select tol_id from tool_t where org_id = ${demo} and tol_name = 'ChatGPT'`;
 
-const emp1 = await new Session().login('emp1'), emp2 = await new Session().login('emp2'), mgr = await new Session().login('mgr');
-const mgr2 = await new Session().login('mgr2'), rev = await new Session().login('rev'), admin = await new Session().login('admin');
+const emp1 = await new Session().login('emp1'), emp2 = await new Session().login('emp2'), mgr = await new Session().login('mgr1');
+const mgr2 = await new Session().login('mgr2'), rev = await new Session().login('rvw1'), admin = await new Session().login('adm1');
 const req = (s, name, purpose) => s.go('/requests/new', { name, vendor: 'Test vendor', url: `https://${name.toLowerCase()}.example`, cat: cat.cat_id, purpose, dataClass: 'Internal' });
 const reqId = async (name) => (await sql`select r.req_id from request_t r join tool_t t using (tol_id) where t.tol_name = ${name}`)[0].req_id;
 
@@ -200,15 +200,23 @@ record(11, [tc11a, (await mgr.go('/manager/requests')).msg]);
 // 20 Edit User (new users join with invite links, test 28)
 {
 	const id = async (email) => (await sql`select usr_id, dep_id from user_t where usr_email = ${email}`)[0];
-	const ben = await id(A.emp2.email), me = await id(A.admin.email);
+	const ben = await id(A.emp2.email), me = await id(A.adm1.email);
+	// The Edit user popup posts to the Users page.
 	record(20, [
-		(await admin.go(`/admin/users/${ben.usr_id}`, { first: '', last: '', role: '', dep: '' })).msg,
-		(await admin.go(`/admin/users/${me.usr_id}`, { first: 'Test', last: 'Admin', role: 'Administrator', dep: me.dep_id })).msg,
-		(await admin.go(`/admin/users/${ben.usr_id}`, { first: 'Ben', last: 'Employee', role: 'Employee', dep: ben.dep_id, active: 'on' })).msg
+		(await admin.go('/admin/users?/edit', { id: ben.usr_id, first: '', last: '', role: '', dep: '' })).msg,
+		(await admin.go('/admin/users?/edit', { id: me.usr_id, first: 'Adam', last: 'Admin', role: 'Administrator', dep: me.dep_id })).msg,
+		(await admin.go('/admin/users?/edit', { id: ben.usr_id, first: 'Ben', last: 'Employee', role: 'Employee', dep: ben.dep_id, active: 'on' })).msg
 	]);
 }
-// 21 Departments, 22 Categories
-record(21, [(await admin.go('/admin/departments?/add', { name: 'A' })).msg, (await admin.go('/admin/departments?/add', { name: 'Finance' })).msg, (await admin.go('/admin/departments?/add', { name: 'Legal' })).msg]);
+// 21 Departments: add, then the Edit popup (rename and users; Ben Employee is the only user of Marketing). 22 Categories
+{
+	const dep = async (name) => (await sql`select dep_id from department_t where org_id = ${demo} and dep_name = ${name}`)[0].dep_id;
+	const mkt = await dep('Marketing'), hr = await dep('HR'), ben = (await sql`select usr_id from user_t where usr_email = ${A.emp2.email}`)[0].usr_id;
+	record(21, [(await admin.go('/admin/departments?/add', { name: 'A' })).msg, (await admin.go('/admin/departments?/add', { name: 'Finance' })).msg, (await admin.go('/admin/departments?/add', { name: 'Legal' })).msg,
+		(await admin.go('/admin/departments?/edit', { id: mkt, name: 'A', users: ben })).msg,
+		(await admin.go('/admin/departments?/edit', { id: mkt, name: 'Marketing' })).msg,
+		(await admin.go('/admin/departments?/edit', { id: mkt, name: 'Marketing', users: ben, moveTo: hr })).msg]);
+}
 record(22, [(await admin.go('/admin/catalogue?/add', { name: 'A' })).msg, (await admin.go('/admin/catalogue?/add', { name: 'Chatbot' })).msg, (await admin.go('/admin/catalogue?/add', { name: 'Image generator' })).msg]);
 // 23 Audit Log, 24 Reports (the plan uses November 2026, the month of the test run)
 {
@@ -268,7 +276,7 @@ const inviteLink = async (role, email = '') => (await admin.go('/admin/users?/in
 	const ow = await new Session().login('owner');
 	const page = await ow.go('/owner');
 	const off = await ow.go('/owner?/toggle', { id: other });
-	const blocked = await new Session().go('/login', { email: A.other.email, password: A.other.password });
+	const blocked = await new Session().go('/login', { email: A.adm2.email, password: A.adm2.password });
 	await ow.go('/owner?/toggle', { id: other });
 	// Rename (a short name, then the same name again), manage Noctua Demo as its Administrator, then go back.
 	const short = (await ow.go('/owner?/rename', { id: other, name: 'X' })).msg;
@@ -285,11 +293,11 @@ const inviteLink = async (role, email = '') => (await admin.go('/admin/users?/in
 		managed.path === '/admin' && managed.html.includes('You manage Noctua Demo') ? 'The Administrator Dashboard of Noctua Demo appears, with the Owner banner' : 'Not managed',
 		users.html.includes('emp1@satar.test') ? 'The users of Noctua Demo appear' : 'Wrong users',
 		left.path === '/owner' ? appears(left) : 'Still managing',
-		forged.html.includes('other@satar.test') ? 'The users of Other Org Sdn Bhd appear' : 'Only the users of Noctua Demo appear']);
+		forged.html.includes('adm2@satar.test') ? 'The users of Other Org Sdn Bhd appear' : 'Only the users of Noctua Demo appear']);
 }
 // Isolation: organizations are apart: the Administrator of Other Org Sdn Bhd sees none of Noctua Demo's data
 {
-	const ot = await new Session().login('other');
+	const ot = await new Session().login('adm2');
 	const reg = await ot.go('/register'), names = cellTexts(reg.html);
 	record('iso', [names.length === 1 && names[0].startsWith('SecretTool') ? 'Only SecretTool appears' : `${names.length} tools appear`,
 		(await ot.go(`/register/${chat.tol_id}`)).h1, (await emp1.go('/register?q=Secret')).msg,

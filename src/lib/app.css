@@ -66,3 +66,30 @@ body.landing .inside { overflow: clip; }
 /* Labels in the body font, in sentence case: the design system's spaced mono capitals looked generic (user, 20 Nov 2026). */
 body .s-eyebrow, body .pill, body .num { font-family: var(--font-sans); font-size: 14px; line-height: 20px; font-weight: 500; letter-spacing: 0; text-transform: none; }
 body .brand-by { font-family: var(--font-sans); font-size: 12px; letter-spacing: 0; text-transform: none; }
+/* The Owner's banner while managing an organization: the text takes the free width; on a phone the button goes below it, full width. */
+.owner-bar { flex-wrap: wrap; align-items: center; margin-bottom: var(--space-6); }
+.owner-bar .s-banner__body { flex: 1 1 260px; }
+@media (max-width: 599px) { .owner-bar form { flex-basis: 100%; } .owner-bar form .s-btn { width: 100%; justify-content: center; } }
+/* Card view of tables (tablet and phone): action buttons keep their small size, and numbers sit next to their label (user, 20 Nov 2026). */
+@media (max-width: 1023px) {
+	body .s-table--stack-md td.s-actions .s-btn { width: auto; justify-self: start; }
+	body .s-table--stack-md td.is-num { text-align: left; }
+}
+@media (max-width: 767px) {
+	body .s-table--stack td.s-actions .s-btn { width: auto; justify-self: start; }
+	body .s-table--stack td.is-num { text-align: left; }
+}
+/* Dropdown lists in the SATAR style (user, 20 Nov 2026). Browsers with customizable select (Chrome and Edge 135+) draw the open list
+   with these rules; other browsers keep their native list. */
+@supports (appearance: base-select) {
+	.s-select, .s-select::picker(select) { appearance: base-select; }
+	.s-select { display: flex; align-items: center; }
+	.s-select::picker-icon { display: none; }
+	.s-select::picker(select) { margin-top: 6px; padding: 6px; border: 1px solid var(--border-strong); border-radius: var(--radius-md); background: var(--surface-raised); color: var(--text); box-shadow: 0 18px 40px -12px rgb(0 0 0 / 0.55); max-height: 320px; overflow-y: auto; }
+	.s-select option { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; font-size: 14px; color: var(--text); cursor: pointer; }
+	.s-select option:hover, .s-select option:focus-visible { background: color-mix(in srgb, var(--lumen) 12%, transparent); color: var(--text-strong); outline: none; }
+	.s-select option:checked { color: var(--lumen); font-weight: 600; }
+	.s-select option::checkmark { order: 1; margin-left: auto; color: var(--lumen); }
+}
+/* A click anywhere in a date box opens the calendar (+layout.svelte). */
+input[type="date"].s-input { cursor: pointer; }
