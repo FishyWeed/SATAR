@@ -4,10 +4,10 @@
 	import Field from '#lib/Field.svelte';
 	import Msg from '#lib/Msg.svelte';
 	import PageHead from '#lib/PageHead.svelte';
+	import TableWrap from '#lib/TableWrap.svelte';
 	import { fmtDate } from '#lib/rules.ts';
 	import { badge, icon } from '#lib/ui.ts';
 	import type { PageProps } from './$types';
-	import TableWrap from '#lib/TableWrap.svelte';
 
 	let { data, form }: PageProps = $props();
 	let dialog = $state<HTMLDialogElement>();

@@ -5,6 +5,8 @@
 	const notFound = $derived(page.status === 404);
 </script>
 
+<svelte:head><title>{notFound ? page.error?.message : 'Something went wrong'} · SATAR</title></svelte:head>
+
 <div class="s-errorpage">
 	<div class="s-empty__art" style="width:96px;height:96px">{@html icon(notFound ? 'search' : 'alert-triangle', 's-ic--xl')}</div>
 	<span class="s-errorpage__code">ERROR {page.status}</span>

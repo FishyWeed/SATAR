@@ -1,9 +1,9 @@
 <script lang="ts">
 	import Empty from '#lib/Empty.svelte';
 	import PageHead from '#lib/PageHead.svelte';
+	import TableWrap from '#lib/TableWrap.svelte';
 	import { fmtDate } from '#lib/rules.ts';
 	import type { PageProps } from './$types';
-	import TableWrap from '#lib/TableWrap.svelte';
 
 	let { data }: PageProps = $props();
 </script>

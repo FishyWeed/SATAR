@@ -6,6 +6,8 @@
 	let { form }: PageProps = $props();
 </script>
 
+<svelte:head><title>Reset password · SATAR</title></svelte:head>
+
 <div><h1>Reset Password</h1><p class="s-sub">Choose a password you do not use anywhere else.</p></div>
 <Msg {form} />
 <form method="POST" class="s-form" novalidate>

@@ -9,6 +9,8 @@
 	const next = $derived(page.url.searchParams.get('next'));
 </script>
 
+<svelte:head><title>Sign in · SATAR</title></svelte:head>
+
 <div><span class="s-eyebrow">Welcome back</span><h1 style="margin-top:10px">Sign In</h1><p class="s-sub">Use the email id of your SATAR account.</p></div>
 {#if page.url.searchParams.has('link')}<Banner kind="warning" title="The link has expired. Ask for a new one." />{/if}
 {#if page.url.searchParams.has('reset')}<Banner kind="success" title="Password saved. Please sign in" />{/if}

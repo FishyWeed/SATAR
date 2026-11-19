@@ -47,7 +47,6 @@ body.landing::before { display: none; }
 /* Additions for the SvelteKit pages */
 .s-empty__title { font-size: 16px; line-height: 24px; font-weight: 600; color: var(--text-strong) !important; }
 .s-banner__body p + p { margin-top: 4px; }
-.s-user form { display: contents; }
 .s-menu form, .s-drawer form { display: contents; }
 .s-drawer nav button { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px; padding: 0 12px; border: 0; border-radius: 10px; background: none; color: var(--text); font: inherit; font-weight: 500; text-align: left; cursor: pointer; }
 .s-drawer nav button:hover { background: var(--surface-raised); }

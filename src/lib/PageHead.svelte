@@ -6,6 +6,8 @@
 	let { title, desc = '', back, children }: { title: string; desc?: string; back?: [href: string, label: string]; children?: Snippet } = $props();
 </script>
 
+<svelte:head><title>{title} · SATAR</title></svelte:head>
+
 <header class="s-pagehead">
 	<div class="s-pagehead__text">
 		{#if back}<a class="s-link s-link--standalone s-link--back" href={back[0]}>{@html icon('arrow-left')}{back[1]}</a>{/if}

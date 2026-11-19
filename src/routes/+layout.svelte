@@ -51,8 +51,6 @@
 	});
 </script>
 
-<svelte:head><title>SATAR</title></svelte:head>
-
 {#snippet brand(href: string)}
 	<a class="s-brand" {href} aria-label="SATAR home" data-sveltekit-reload={href === '/' ? '' : undefined}><img src={mark} alt="" style="height:22px" /><span class="s-brand__word">SATAR</span></a>
 {/snippet}

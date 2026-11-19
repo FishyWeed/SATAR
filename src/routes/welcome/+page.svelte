@@ -7,6 +7,8 @@
 	let { data, form }: PageProps = $props();
 </script>
 
+<svelte:head><title>Welcome · SATAR</title></svelte:head>
+
 <div class="welcome-head">
 	<span class="s-eyebrow">Set up</span>
 	<h1>Welcome, {data.user?.firstName}</h1>

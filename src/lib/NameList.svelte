@@ -1,11 +1,11 @@
 <script lang="ts">
 	// The page of Manage Departments: an add form and a list where each name can be renamed.
-	import Field from '#lib/Field.svelte';
 	import Empty from '#lib/Empty.svelte';
+	import Field from '#lib/Field.svelte';
 	import Msg from '#lib/Msg.svelte';
 	import PageHead from '#lib/PageHead.svelte';
-	import { icon } from '#lib/ui.ts';
 	import TableWrap from '#lib/TableWrap.svelte';
+	import { icon } from '#lib/ui.ts';
 
 	let { title, desc, label, countLabel, rows, form }: {
 		title: string; desc: string; label: string; countLabel: string;

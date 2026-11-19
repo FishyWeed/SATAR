@@ -16,6 +16,8 @@
 	};
 </script>
 
+<svelte:head><title>Join an organization · SATAR</title></svelte:head>
+
 <div class="join-wrap">
 	<div class="s-stack" style="--_gap:20px;width:100%;max-width:480px">
 		<Msg {form} />

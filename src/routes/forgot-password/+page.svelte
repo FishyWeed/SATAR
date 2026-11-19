@@ -7,6 +7,8 @@
 	let { form }: PageProps = $props();
 </script>
 
+<svelte:head><title>Forgot password · SATAR</title></svelte:head>
+
 <a class="s-link s-link--standalone s-link--back" href="/login">{@html icon('arrow-left')}Back to sign in</a>
 <div><h1>Forgot Password</h1><p class="s-sub">Enter the email id of your account. SATAR sends a link to reset the password.</p></div>
 <Msg {form} />

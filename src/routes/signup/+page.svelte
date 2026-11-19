@@ -8,6 +8,8 @@
 	const next = $derived(page.url.searchParams.get('next'));
 </script>
 
+<svelte:head><title>Sign up · SATAR</title></svelte:head>
+
 <div><span class="s-eyebrow">Get started</span><h1 style="margin-top:10px">Create your account</h1><p class="s-sub">After you confirm your email, you create your organization or join one with an invite link.</p></div>
 <Msg {form} />
 <form method="POST" class="s-form" novalidate>

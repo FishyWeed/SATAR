@@ -6,6 +6,8 @@
 	let { data, form }: PageProps = $props();
 </script>
 
+<svelte:head><title>Check your email · SATAR</title></svelte:head>
+
 <div class="check-mail">{@html icon('mail', 's-ic--xl')}</div>
 <div>
 	<h1>Check your email</h1>

@@ -3,10 +3,10 @@
 	import Empty from '#lib/Empty.svelte';
 	import Field from '#lib/Field.svelte';
 	import PageHead from '#lib/PageHead.svelte';
+	import TableWrap from '#lib/TableWrap.svelte';
 	import { fmtTime } from '#lib/rules.ts';
 	import { badge, icon } from '#lib/ui.ts';
 	import type { PageProps } from './$types';
-	import TableWrap from '#lib/TableWrap.svelte';
 
 	let { data }: PageProps = $props();
 	// The badge colour of a decision: banned, rejected or approved.

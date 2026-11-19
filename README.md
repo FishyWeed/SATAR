@@ -19,6 +19,16 @@ Stack: SvelteKit 3 and Svelte 5 (TypeScript), Supabase (PostgreSQL, Auth, Row Le
 
 Every organization's rows carry its `org_id`, and every query filters by it. `src/hooks.server.ts` checks the session, the role and the organization before every page. The SQL rules in `drizzle/0003_rls_organizations.sql` also keep organizations apart in the database.
 
+## Design
+
+The pages use the SATAR design system ("Night forest", with a day theme):
+
+- `static/css/satar.css` and `static/js/satar.js`: the design system styles and behaviours (menus, dialogs, password toggles, copy buttons, reveals). `src/app.html` loads them.
+- `static/fonts`, `static/img`: DM Serif Display, Geist and Geist Mono; the logos, forest layers and product screens.
+- `static/css/landing.css` and `static/js/landing.js`: the landing page only.
+- `src/lib/app.css`: page layouts. `src/lib/ui.ts`: icons and badges, rendered on the server.
+- `src/lib/*.svelte`: shared parts (`PageHead`, `Field`, `TableWrap`, `Stats`, `Banner`, `Empty`, `DataClasses`, `NameList`).
+
 ## Set up
 
 You need Node.js 22 or 24 and a free Supabase project.
