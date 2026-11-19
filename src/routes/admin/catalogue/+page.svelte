@@ -4,6 +4,7 @@
 	import Msg from '#lib/Msg.svelte';
 	import PageHead from '#lib/PageHead.svelte';
 	import TableWrap from '#lib/TableWrap.svelte';
+	import { liveFilter } from '#lib/live.ts';
 	import { badge, icon } from '#lib/ui.ts';
 	import type { PageProps } from './$types';
 
@@ -21,7 +22,7 @@
 <PageHead title="Catalogue" desc="Categories group the tools in the register." />
 <Msg {form} />
 
-<form method="GET" class="s-filterbar" role="search" aria-label="Filter the catalogue" style="--_selects:2">
+<form use:liveFilter data-sveltekit-reset="false" data-sveltekit-replacestate method="GET" class="s-filterbar" role="search" aria-label="Filter the catalogue" style="--_selects:2">
 	<Field id="q" label="Keyword"><input class="s-input" id="q" name="q" value={data.q} placeholder="Category or tool name" /></Field>
 	<Field id="cat" label="Category">
 		<select class="s-select" id="cat" name="cat">

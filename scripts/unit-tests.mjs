@@ -270,8 +270,22 @@ const inviteLink = async (role, email = '') => (await admin.go('/admin/users?/in
 	const off = await ow.go('/owner?/toggle', { id: other });
 	const blocked = await new Session().go('/login', { email: A.other.email, password: A.other.password });
 	await ow.go('/owner?/toggle', { id: other });
+	// Rename (a short name, then the same name again), manage Noctua Demo as its Administrator, then go back.
+	const short = (await ow.go('/owner?/rename', { id: other, name: 'X' })).msg;
+	const renamed = (await ow.go('/owner?/rename', { id: other, name: 'Other Org Sdn Bhd' })).msg;
+	const managed = await ow.go('/owner?/manage', { id: demo });
+	const users = await ow.go('/admin/users');
+	const left = await ow.go('/owner?/leave', {});
+	// The manage cookie counts only for the Owner: an Administrator who sets it still sees only their own organization.
+	admin.jar.set('satar-manage', String(other));
+	const forged = await admin.go('/admin/users');
+	admin.jar.delete('satar-manage');
 	record(31, [page.html.includes('Noctua Demo') && page.html.includes('Other Org Sdn Bhd') ? 'All organizations appear with their users' : 'Wrong list',
-		appears(await ow.go('/employee')), appears(await admin.go('/owner')), off.msg, blocked.msg]);
+		appears(await ow.go('/employee')), appears(await admin.go('/owner')), off.msg, blocked.msg, short, renamed,
+		managed.path === '/admin' && managed.html.includes('You manage Noctua Demo') ? 'The Administrator Dashboard of Noctua Demo appears, with the Owner banner' : 'Not managed',
+		users.html.includes('emp1@satar.test') ? 'The users of Noctua Demo appear' : 'Wrong users',
+		left.path === '/owner' ? appears(left) : 'Still managing',
+		forged.html.includes('other@satar.test') ? 'The users of Other Org Sdn Bhd appear' : 'Only the users of Noctua Demo appear']);
 }
 // Isolation: organizations are apart: the Administrator of Other Org Sdn Bhd sees none of Noctua Demo's data
 {

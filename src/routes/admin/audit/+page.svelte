@@ -4,6 +4,7 @@
 	import Field from '#lib/Field.svelte';
 	import PageHead from '#lib/PageHead.svelte';
 	import TableWrap from '#lib/TableWrap.svelte';
+	import { liveFilter } from '#lib/live.ts';
 	import { fmtTime } from '#lib/rules.ts';
 	import { badge, icon } from '#lib/ui.ts';
 	import type { PageProps } from './$types';
@@ -17,7 +18,7 @@
 	<a class="s-btn s-btn--secondary" href="/admin/reports?type=audit&from={data.from}&to={data.to}">{@html icon('printer')}Print as report</a>
 </PageHead>
 {#if data.error}<Banner kind="error" title={data.error}><p>The From date must be on or before the To date.</p></Banner>{/if}
-<form method="GET" class="s-filterbar" style="grid-template-columns:repeat(2,minmax(160px,1fr)) auto">
+<form use:liveFilter data-sveltekit-reset="false" data-sveltekit-replacestate method="GET" class="s-filterbar" style="grid-template-columns:repeat(2,minmax(160px,1fr)) auto">
 	<Field id="from" label="From"><input class="s-input" type="date" id="from" name="from" value={data.from} /></Field>
 	<Field id="to" label="To"><input class="s-input" type="date" id="to" name="to" value={data.to} /></Field>
 	<div class="s-btn-row"><button class="s-btn s-btn--secondary">{@html icon('filter')}Filter</button></div>

@@ -4,7 +4,7 @@ import type { Handle } from '@sveltejs/kit/hooks';
 import { eq } from 'drizzle-orm';
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$app/env/public';
 import { db, organization, user } from '#lib/server/db/index.ts';
-import { homeOf } from '#lib/server/auth.ts';
+import { MANAGE_COOKIE, homeOf } from '#lib/server/auth.ts';
 import type { Role } from '#lib/rules.ts';
 
 // Pages open before sign-in ('/' is the landing page, open to everyone). /reset-password and /join/ also serve signed-in users.
@@ -34,6 +34,12 @@ export const handle: Handle = async ({ event, resolve }) => {
 			event.locals.user = { id: u.usr_id, firstName: u.usr_f_name, lastName: u.usr_l_name, email: u.usr_email, role: u.usr_role, depId: u.dep_id, orgId: u.org_id, orgName: org?.org_name ?? null };
 		}
 	}
+	// The Owner can manage one organization with the rights of its Administrator. The cookie counts only for the real Owner.
+	const manage = Number(event.cookies.get(MANAGE_COOKIE));
+	if (event.locals.user?.role === 'Owner' && Number.isInteger(manage) && manage > 0) {
+		const [o] = await db.select().from(organization).where(eq(organization.org_id, manage));
+		if (o) event.locals.user = { ...event.locals.user, role: 'Administrator', orgId: o.org_id, orgName: o.org_name, asOwner: true };
+	}
 
 	const path = event.url.pathname, me = event.locals.user;
 	if (!me) {
@@ -46,7 +52,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 			else if (!me.orgId) { if (!under(path, '/welcome')) redirect(303, home); }
 			else {
 				const area = AREAS.find(([p]) => under(path, p));
-				if (under(path, '/welcome') || under(path, '/owner') || (area && area[1] !== me.role)) redirect(303, home);
+				if (under(path, '/welcome') || (under(path, '/owner') && !me.asOwner) || (area && area[1] !== me.role)) redirect(303, home);
 			}
 		}
 	}

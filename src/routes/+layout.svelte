@@ -115,7 +115,17 @@
 				</nav>
 			</div>
 		</aside>
-		<main class="s-main view" id="main" tabindex="-1">{@render children()}</main>
+		<main class="s-main view" id="main" tabindex="-1">
+			{#if user.asOwner}
+				<!-- No role: the page's own messages stay the first status on the page (the unit tests read it). -->
+				<div class="s-banner s-banner--info" style="margin-bottom:var(--space-6);align-items:center">
+					{@html icon('building', 's-ic--md s-banner__icon')}
+					<div class="s-banner__body"><p><strong>You manage {user.orgName} as the platform Owner.</strong></p><p>You have the rights of its Administrator.</p></div>
+					<form method="POST" action="/owner?/leave" data-sveltekit-reload><button class="s-btn s-btn--secondary s-btn--sm">{@html icon('arrow-left')}Back to organizations</button></form>
+				</div>
+			{/if}
+			{@render children()}
+		</main>
 	</div>
 {:else}
 	<a class="s-skip" href="#main">Skip to content</a>

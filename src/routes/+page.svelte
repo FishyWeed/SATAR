@@ -331,7 +331,7 @@
 			<a class="noctua-sig" href="/" onclick={toTop}><img src="/img/logos/noctua-logo-lumen.svg" alt="Noctua" style="height:32px;width:auto" /></a>
 		</div>
 		<div><h4>Product</h4><ul><li><a href="#how">How it works</a></li><li><a href="#features">Features</a></li><li><a href="#roles">Roles</a></li></ul></div>
-		<div><h4>Account</h4><ul><li><a href="/login">Sign in</a></li><li><a href="/signup">Sign up</a></li></ul></div>
+		<div><h4>Account</h4><ul>{#if data.home}<li><a href={data.home}>Open SATAR</a></li><li><a href="/profile">My profile</a></li>{:else}<li><a href="/login">Sign in</a></li><li><a href="/signup">Sign up</a></li>{/if}</ul></div>
 	</div>
 	<div class="s-footer__base"><span>© 2026 Noctua. All rights reserved.</span><span>Made in Kuala Lumpur</span></div>
 </footer>

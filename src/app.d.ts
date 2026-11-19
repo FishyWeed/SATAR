@@ -8,10 +8,11 @@ declare global {
 			/**
 			 * Signed-in, active user from USER_T, or null. orgId, depId and role are null for a person who has
 			 * not created or joined an organization yet; the Owner has the role 'Owner' and no organization.
+			 * While the Owner manages an organization, role is 'Administrator', orgId is that organization and asOwner is true.
 			 */
 			user: {
 				id: string; firstName: string; lastName: string; email: string;
-				role: UserRole | null; depId: number | null; orgId: number | null; orgName: string | null;
+				role: UserRole | null; depId: number | null; orgId: number | null; orgName: string | null; asOwner?: boolean;
 			} | null;
 		}
 		interface PageData {

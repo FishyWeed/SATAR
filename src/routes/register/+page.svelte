@@ -4,6 +4,7 @@
 	import Field from '#lib/Field.svelte';
 	import PageHead from '#lib/PageHead.svelte';
 	import TableWrap from '#lib/TableWrap.svelte';
+	import { liveFilter } from '#lib/live.ts';
 	import { MSG } from '#lib/rules.ts';
 	import { badge, icon } from '#lib/ui.ts';
 	import type { PageProps } from './$types';
@@ -16,7 +17,7 @@
 	{#if canRequest}<a class="s-btn s-btn--primary" href="/requests/new">{@html icon('plus')}Request a tool</a>{/if}
 </PageHead>
 {#if data.error && data.error !== MSG.noTool}<Banner kind="error" title={data.error}><p>Use up to 50 characters.</p></Banner>{/if}
-<form method="GET" class="s-filterbar" role="search" style="--_selects:1">
+<form use:liveFilter data-sveltekit-reset="false" data-sveltekit-replacestate method="GET" class="s-filterbar" role="search" style="--_selects:1">
 	<Field id="q" label="Keyword"><input class="s-input" id="q" name="q" placeholder="Tool name" value={data.q} /></Field>
 	<Field id="cat" label="Category">
 		<select class="s-select" id="cat" name="cat">
