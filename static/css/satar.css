@@ -728,10 +728,11 @@ input[type="date"].s-input::-webkit-calendar-picker-indicator { filter: invert(0
 .s-pubheader { position: fixed; top: 0; left: 0; right: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px var(--gutter-desktop); transition: background-color var(--duration-base) linear, padding var(--duration-base) var(--ease-out), border-color var(--duration-base) linear; border-bottom: 1px solid transparent; }
 .s-pubheader.is-scrolled { padding-top: 10px; padding-bottom: 10px; background: color-mix(in srgb, var(--bg) 70%, transparent); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-bottom-color: color-mix(in srgb, var(--border) 70%, transparent); }
 .s-pubheader__links { display: flex; align-items: center; gap: 4px; padding: 5px; border-radius: var(--radius-pill); background: color-mix(in srgb, var(--surface) 30%, transparent); border: 1px solid color-mix(in srgb, var(--text-strong) 16%, transparent); backdrop-filter: blur(14px) saturate(1.3); -webkit-backdrop-filter: blur(14px) saturate(1.3); }
-.s-pubheader__links a { padding: 8px 16px; border-radius: var(--radius-pill); color: var(--text); text-decoration: none; font-size: 14px; transition: background-color var(--duration-instant) linear, color var(--duration-instant) linear; }
+.s-pubheader__links a { padding: 8px 16px; border-radius: var(--radius-pill); color: var(--text); text-decoration: none; font-size: 14px; white-space: nowrap; transition: background-color var(--duration-instant) linear, color var(--duration-instant) linear; }
 .s-pubheader__links a:hover { background: color-mix(in srgb, var(--text-strong) 10%, transparent); color: var(--text-strong); }
 .s-pubheader__end { display: flex; gap: 8px; align-items: center; }
-@media (max-width: 899px) { .s-pubheader__links { display: none; } }
+@media (max-width: 1199px) { .s-pubheader__links a { padding: 8px 10px; } }
+@media (max-width: 1023px) { .s-pubheader__links { display: none; } }
 @media (max-width: 1023px) { .s-pubheader { padding-left: var(--gutter-tablet); padding-right: var(--gutter-tablet); } }
 @media (max-width: 767px) { .s-pubheader { padding: 16px var(--gutter-phone); } .s-pubheader .s-btn { min-height: 40px; padding: 0 16px; } }
 

@@ -87,9 +87,11 @@
 		<span class="brand-by">by Noctua</span>
 	</a>
 	<nav class="s-pubheader__links" aria-label="Sections">
+		<a href="#catalogue">Catalogue</a>
 		<a href="#problem">Shadow AI</a>
 		<a href="#how">How it works</a>
 		<a href="#features">Features</a>
+		<a href="#inside">Screens</a>
 		<a href="#roles">Roles</a>
 	</nav>
 	<div class="s-pubheader__end">
@@ -151,9 +153,9 @@
 </section>
 
 <!-- ============ Product preview: through the window ============ -->
-<section class="preview" aria-labelledby="preview-title">
+<section class="preview" id="catalogue" aria-labelledby="preview-title">
 	<div class="preview__intro s-reveal">
-		<p class="s-eyebrow">The register</p>
+		<p class="s-eyebrow">Catalogue</p>
 		<h2 id="preview-title" class="preview__title">One place to see every AI tool, and what it is approved for.</h2>
 	</div>
 	<div class="window" id="window">
@@ -330,7 +332,7 @@
 			<p>SATAR keeps a register of the generative AI tools your organization approves, with a two-step check and an audit log for compliance.</p>
 			<a class="noctua-sig" href="/" onclick={toTop}><img src="/img/logos/noctua-logo-lumen.svg" alt="Noctua" style="height:32px;width:auto" /></a>
 		</div>
-		<div><h4>Product</h4><ul><li><a href="#how">How it works</a></li><li><a href="#features">Features</a></li><li><a href="#roles">Roles</a></li></ul></div>
+		<div><h4>Product</h4><ul><li><a href="#catalogue">Catalogue</a></li><li><a href="#how">How it works</a></li><li><a href="#features">Features</a></li><li><a href="#inside">Screens</a></li><li><a href="#roles">Roles</a></li></ul></div>
 		<div><h4>Account</h4><ul>{#if data.home}<li><a href={data.home}>Open SATAR</a></li><li><a href="/profile">My profile</a></li>{:else}<li><a href="/login">Sign in</a></li><li><a href="/signup">Sign up</a></li>{/if}</ul></div>
 	</div>
 	<div class="s-footer__base"><span>© 2026 Noctua. All rights reserved.</span><span>Made in Kuala Lumpur</span></div>
