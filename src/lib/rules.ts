@@ -12,7 +12,10 @@ export type Risk = (typeof RISKS)[number];
 export type ToolStatus = 'Pending' | 'Approved' | 'Rejected' | 'Banned';
 export type RequestStatus = 'Pending Manager' | 'Pending Reviewer' | 'Approved' | 'Rejected';
 
-export const HOME: Record<Role, string> = { Employee: '/employee', Manager: '/manager', Reviewer: '/reviewer', Administrator: '/admin' };
+/** An Employee can request a tool only while it is not decided for good: approved tools are already allowed, banned tools never are. */
+export const isRequestable = (status: string) => status !== 'Approved' && status !== 'Banned';
+
+export const HOME:Record<Role, string> = { Employee: '/employee', Manager: '/manager', Reviewer: '/reviewer', Administrator: '/admin' };
 
 export const MSG = {
 	email: 'Enter a valid email id',
@@ -26,6 +29,9 @@ export const MSG = {
 	noTool: 'No tool found',
 	fields: 'Fill in all fields correctly',
 	toolExists: 'Tool is already in the register',
+	toolBanned: 'This tool is banned',
+	toolApproved: 'This tool is already approved for use',
+	openRequest: 'You already have an open request for this tool',
 	submitted: 'Request submitted',
 	reason: 'Enter a reason',
 	futureDate: 'Enter a future review date',

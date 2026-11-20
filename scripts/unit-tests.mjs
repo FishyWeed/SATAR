@@ -95,7 +95,7 @@ record(4, [
 	appears(await mgr.go('/employee')),
 	appears(await new Session().go('/employee'))
 ]);
-// 5 Catalogue, Tools tab
+// 5 Catalogue (more cases after test 17)
 {
 	const all = await emp1.go('/catalogue?q='), chatQ = await emp1.go('/catalogue?q=chat');
 	const total = (await sql`select count(*)::int n from tool_t where org_id = ${demo}`)[0].n;
@@ -106,12 +106,12 @@ record(4, [
 		(await emp1.go('/catalogue?q=zzzz')).msg
 	]);
 }
-// 6 Tool Details
+// 6 Tool Details (more cases after test 17)
 {
 	const ok = await emp1.go(`/catalogue/${chat.tol_id}`);
 	record(6, [ok.h1 === 'Tool Details' && ok.html.includes('ChatGPT') ? `The details of tool ${chat.tol_id} appear` : 'Wrong page', (await emp1.go('/catalogue/9999')).h1, (await emp1.go('/catalogue/abc')).h1]);
 }
-// 7 Submit Tool Request (TC4 makes NotesBot); then MeetingAI so that emp1 has 2 requests for test 8
+// 7 Submit Tool Request, new tool (TC4 makes NotesBot; the existing-tool cases run after test 17); then MeetingAI so that emp1 has 2 requests for test 8
 {
 	const out = [
 		(await emp1.go('/requests/new', { name: '', vendor: '', url: '', cat: '', purpose: '', dataClass: '' })).msg,
@@ -189,6 +189,22 @@ record(11, [tc11a, (await mgr.go('/manager/requests')).msg]);
 		(${demo}, 'Grammarly', 'Grammarly', 'https://grammarly.com', 'Approved', 'Low', 'Public', 'Public text only', '2026-10-15')`;
 	const r = await rev.go('/reviewer/overdue'), list = cellTexts(r.html);
 	record(17, [list.length === 2 && list[0].startsWith('Grammarly') ? 'The 2 tools appear, oldest first' : `${list.length} tools appear`, none]);
+}
+// More cases of 5, 6 and 7, now that tools have every status: ChatGPT and NotesBot Approved, PromptPal Banned,
+// MeetingAI Rejected (test 12) and BrandWriter Pending. An Employee requests only tools that are not approved or banned.
+{
+	const id = async (n) => (await sql`select tol_id from tool_t where org_id = ${demo} and tol_name = ${n}`)[0].tol_id;
+	const [pal, meeting] = [await id('PromptPal'), await id('MeetingAI')];
+	const list = await emp1.go('/catalogue');
+	const trs = [...(list.html.match(/<tbody>([\s\S]*?)<\/tbody>/)?.[1] ?? '').matchAll(/<tr>([\s\S]*?)<\/tr>/g)].map((m) => m[1]);
+	const rightButtons = trs.length > 0 && trs.every((r) => r.includes('/requests/new?tool=') === !/>(Approved|Banned)</.test(r));
+	const cats = await emp1.go('/catalogue?view=categories');
+	results[5].push(rightButtons ? 'Request appears only for the tools that are not approved or banned' : 'Wrong Request buttons',
+		!cats.html.includes('view=categories') && rows(cats.html) === trs.length ? 'Only the list of tools appears, with no Categories tab' : 'The Categories tab appears');
+	results[6].push(!(await emp1.go(`/catalogue/${chat.tol_id}`)).html.includes('Request this tool') ? 'No Request this tool button' : 'The Request this tool button appears',
+		(await emp1.go(`/catalogue/${meeting}`)).html.includes('Request this tool') ? 'The Request this tool button appears' : 'No Request this tool button');
+	const existing = (tool) => emp1.go('/requests/new', { mode: 'existing', tool, purpose: 'Use it for my reports', dataClass: 'Internal' });
+	for (const t of ['', chat.tol_id, pal, meeting, meeting]) results[7].push((await existing(t)).msg);
 }
 // 18 Dashboard, 19 Manage Users
 {

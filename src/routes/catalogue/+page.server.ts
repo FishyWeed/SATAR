@@ -12,10 +12,11 @@ const ADMIN_ONLY = 'Only the Administrator can change categories';
 const toolCategoryIds = sql<number[]>`coalesce((select array_agg(tc.cat_id) from tool_category_t tc where tc.tol_id = "tool_t"."tol_id"), '{}')`;
 
 // Process 2.0: the catalogue of the organization for every member. The Tools tab finds tools by keyword, category
-// (or "none") and status; the Categories tab lists the categories with their number of tools.
+// (or "none") and status; the Categories tab (Administrator only, to add and edit categories) lists the categories
+// with their number of tools.
 export const load: PageServerLoad = async ({ url, locals }) => {
-	const org = member(locals).orgId;
-	const view = url.searchParams.get('view') === 'categories' ? 'categories' : 'tools';
+	const me = member(locals), org = me.orgId;
+	const view = url.searchParams.get('view') === 'categories' && me.role === 'Administrator' ? 'categories' : 'tools';
 	const q = (url.searchParams.get('q') ?? '').trim(), status = url.searchParams.get('status') ?? '';
 	const catParam = url.searchParams.get('cat') ?? '';
 	const cat = catParam === 'none' ? 'none' : Number(catParam) || 0;

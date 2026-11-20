@@ -98,3 +98,10 @@ input[type="date"].s-input { cursor: pointer; }
 .tabs a { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; color: var(--text-muted); font-size: 14px; font-weight: 500; text-decoration: none; }
 .tabs a:hover { color: var(--text-strong); background: var(--surface-raised); }
 .tabs a[aria-current="page"] { color: var(--text-strong); background: var(--surface-raised); box-shadow: inset 0 -2px 0 var(--lumen); }
+/* A column heading that sorts the table (Catalogue): the arrow shows on the sorted column, and faintly on hover. */
+.th-sort { all: unset; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; border-radius: 4px; }
+.th-sort:hover { color: var(--text-strong); }
+.th-sort:focus-visible { outline: 2px solid var(--lumen); outline-offset: 2px; }
+.th-sort .s-ic { opacity: 0; }
+.th-sort:hover .s-ic, th[aria-sort] .th-sort .s-ic { opacity: 1; }
+th[aria-sort] .th-sort { color: var(--text-strong); }

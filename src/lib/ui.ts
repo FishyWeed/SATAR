@@ -15,6 +15,7 @@ const P: Record<string, string> = {
     "arrow-left": '<path d="M19 12H5M11 6l-6 6 6 6"/>',
     "arrow-up-right": '<path d="M7 17L17 7M8 7h9v9"/>',
     "chevron-down": '<path d="M6 9l6 6 6-6"/>',
+    "chevron-up": '<path d="M6 15l6-6 6 6"/>',
     "chevron-left": '<path d="M15 6l-6 6 6 6"/>',
     "chevron-right": '<path d="M9 6l6 6-6 6"/>',
     menu: '<path d="M4 7h16M4 12h16M4 17h10"/>',

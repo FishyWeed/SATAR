@@ -2,7 +2,7 @@
 	import Banner from '#lib/Banner.svelte';
 	import DataClasses from '#lib/DataClasses.svelte';
 	import PageHead from '#lib/PageHead.svelte';
-	import { fmtDate } from '#lib/rules.ts';
+	import { fmtDate, isRequestable } from '#lib/rules.ts';
 	import { badge, icon } from '#lib/ui.ts';
 	import type { PageProps } from './$types';
 
@@ -10,7 +10,10 @@
 	const t = $derived(data.tool);
 </script>
 
-<PageHead title="Tool Details" desc="{t.tol_name} by {t.tol_vendor}" back={['/catalogue', 'Back to catalogue']} />
+<PageHead title="Tool Details" desc="{t.tol_name} by {t.tol_vendor}" back={['/catalogue', 'Back to catalogue']}>
+	<!-- An Employee can request a tool that is not approved or banned yet (pending, or rejected and to be checked again). -->
+	{#if data.user?.role === 'Employee' && isRequestable(t.tol_status)}<a class="s-btn s-btn--primary" href="/requests/new?tool={t.tol_id}">{@html icon('plus')}Request this tool</a>{/if}
+</PageHead>
 <div class="two-col">
 	<div class="s-stack" style="--_gap:24px">
 		{#if t.tol_status === 'Approved' && t.tol_data_class}

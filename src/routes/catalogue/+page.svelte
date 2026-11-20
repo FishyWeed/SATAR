@@ -1,6 +1,6 @@
 <script lang="ts">
-	// The catalogue of AI tools for every member, with two tabs: Tools and Categories.
-	// The Administrator also adds and edits categories, in one popup.
+	// The catalogue of AI tools for every member. The Administrator also has a Categories tab to add and edit
+	// categories, in one popup. A click on a column heading sorts the tools; an Employee can request a tool from here.
 	import Banner from '#lib/Banner.svelte';
 	import Empty from '#lib/Empty.svelte';
 	import Field from '#lib/Field.svelte';
@@ -8,7 +8,7 @@
 	import PageHead from '#lib/PageHead.svelte';
 	import TableWrap from '#lib/TableWrap.svelte';
 	import { liveFilter } from '#lib/live.ts';
-	import { MSG } from '#lib/rules.ts';
+	import { DATA_CLASSES, MSG, RISKS, isRequestable } from '#lib/rules.ts';
 	import { badge, icon } from '#lib/ui.ts';
 	import type { PageProps } from './$types';
 
@@ -16,6 +16,26 @@
 	const canRequest = $derived(data.user?.role === 'Employee');
 	const isAdmin = $derived(data.user?.role === 'Administrator');
 	const filtered = $derived(!!(data.q || data.cat || data.status));
+
+	// Sorting on the page: by name first; a second click on the same heading turns the order round.
+	// Risk and data class sort by level (Low to High, Public to Restricted); empty values stay last.
+	const COLS = [['name', 'Tool'], ['categories', 'Categories'], ['status', 'Status'], ['risk', 'Risk'], ['dataClass', 'Data class']] as const;
+	type Key = (typeof COLS)[number][0];
+	let sort = $state<{ key: Key; dir: 1 | -1 }>({ key: 'name', dir: 1 });
+	const sortBy = (key: Key) => (sort = { key, dir: sort.key === key ? (-sort.dir as 1 | -1) : 1 });
+	const sorted = $derived.by(() => {
+		const { key, dir } = sort;
+		const val = (t: (typeof data.tools)[number]) => {
+			const v = t[key];
+			if (v == null || v === '-') return null;
+			return key === 'risk' ? RISKS.indexOf(v as never) : key === 'dataClass' ? DATA_CLASSES.indexOf(v as never) : String(v);
+		};
+		return [...data.tools].sort((a, b) => {
+			const x = val(a), y = val(b);
+			if (x === null || y === null) return x === y ? 0 : x === null ? 1 : -1;
+			return dir * (typeof x === 'number' ? x - (y as number) : x.localeCompare(y as string));
+		});
+	});
 
 	// The popup: id 0 adds a new category, any other id edits that category.
 	let dialog = $state<HTMLDialogElement>();
@@ -36,10 +56,12 @@
 <Msg {form} />
 {#if data.error && data.error !== MSG.noTool}<Banner kind="error" title={data.error}><p>Use up to 50 characters.</p></Banner>{/if}
 
-<nav class="tabs" aria-label="Catalogue views">
-	<a href="/catalogue" aria-current={data.view === 'tools' ? 'page' : undefined}>{@html icon('grid')}Tools</a>
-	<a href="/catalogue?view=categories" aria-current={data.view === 'categories' ? 'page' : undefined}>{@html icon('tag')}Categories</a>
-</nav>
+{#if isAdmin}
+	<nav class="tabs" aria-label="Catalogue views">
+		<a href="/catalogue" aria-current={data.view === 'tools' ? 'page' : undefined}>{@html icon('grid')}Tools</a>
+		<a href="/catalogue?view=categories" aria-current={data.view === 'categories' ? 'page' : undefined}>{@html icon('tag')}Categories</a>
+	</nav>
+{/if}
 
 <form use:liveFilter data-sveltekit-reset="false" data-sveltekit-replacestate method="GET" class="s-filterbar" role="search" aria-label="Filter the catalogue" style="--_selects:{data.view === 'tools' ? 2 : 0}">
 	{#if data.view === 'categories'}<input type="hidden" name="view" value="categories" />{/if}
@@ -70,16 +92,28 @@
 		{#if data.tools.length}
 			<div class="s-section__head"><p class="s-muted s-num">{data.tools.length} tool{data.tools.length === 1 ? '' : 's'}</p></div>
 			<TableWrap label="AI tools" md>
-				<thead><tr><th scope="col">Tool</th><th scope="col">Categories</th><th scope="col">Status</th><th scope="col">Risk</th><th scope="col">Data class</th><th scope="col" class="s-actions"><span class="s-sr">Action</span></th></tr></thead>
+				<thead>
+					<tr>
+						{#each COLS as [key, label] (key)}
+							<th scope="col" aria-sort={sort.key === key ? (sort.dir === 1 ? 'ascending' : 'descending') : undefined}>
+								<button class="th-sort" type="button" onclick={() => sortBy(key)}>{label}{@html icon(sort.key === key && sort.dir === -1 ? 'chevron-down' : 'chevron-up', 's-ic--xs')}</button>
+							</th>
+						{/each}
+						<th scope="col" class="s-actions"><span class="s-sr">Action</span></th>
+					</tr>
+				</thead>
 				<tbody>
-					{#each data.tools as t (t.id)}
+					{#each sorted as t (t.id)}
 						<tr>
 							<td data-label="Tool"><a href="/catalogue/{t.id}">{t.name}</a><span class="s-sub">{t.vendor}</span></td>
 							<td data-label="Categories">{t.categories}</td>
 							<td data-label="Status">{@html badge(t.status)}</td>
 							<td data-label="Risk">{@html badge(t.risk)}</td>
 							<td data-label="Data class">{@html badge(t.dataClass)}</td>
-							<td data-label="Action" class="s-actions"><a class="s-btn s-btn--secondary s-btn--sm" href="/catalogue/{t.id}">View</a></td>
+							<td data-label="Action" class="s-actions">
+								<a class="s-btn s-btn--secondary s-btn--sm" href="/catalogue/{t.id}">View</a>
+								{#if canRequest && isRequestable(t.status)}<a class="s-btn s-btn--primary s-btn--sm" href="/requests/new?tool={t.id}">Request</a>{/if}
+							</td>
 						</tr>
 					{/each}
 				</tbody>
