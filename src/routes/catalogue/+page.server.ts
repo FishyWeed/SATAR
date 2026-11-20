@@ -3,44 +3,35 @@ import { and, count, eq, ilike, inArray, ne, sql } from 'drizzle-orm';
 import { category, db, tool, toolCategory } from '#lib/server/db/index.ts';
 import { member } from '#lib/server/auth.ts';
 import { isUniqueViolation } from '#lib/server/errors.ts';
-import { categoryNames, inCategory } from '#lib/server/queries.ts';
-import { MSG, field, isLength, likeText, type ToolStatus } from '#lib/rules.ts';
+import { categoryNames } from '#lib/server/queries.ts';
+import { MSG, field, isLength, type ToolStatus } from '#lib/rules.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 const STATUSES: ToolStatus[] = ['Pending', 'Approved', 'Rejected', 'Banned'];
 const ADMIN_ONLY = 'Only the Administrator can change categories';
 const toolCategoryIds = sql<number[]>`coalesce((select array_agg(tc.cat_id) from tool_category_t tc where tc.tol_id = "tool_t"."tol_id"), '{}')`;
 
-// Process 2.0: the catalogue of the organization for every member. The Tools tab finds tools by keyword, category
-// (or "none") and status; the Categories tab (Administrator only, to add and edit categories) lists the categories
-// with their number of tools.
+// Process 2.0: the catalogue of the organization for every member. The page gets every tool (and, on the Categories
+// tab of the Administrator, every category with its number of tools) and filters them in the browser by keyword,
+// category (or "none") and status, so a change shows at once. The filters in the URL set the first view.
 export const load: PageServerLoad = async ({ url, locals }) => {
 	const me = member(locals), org = me.orgId;
 	const view = url.searchParams.get('view') === 'categories' && me.role === 'Administrator' ? 'categories' : 'tools';
-	const q = (url.searchParams.get('q') ?? '').trim(), status = url.searchParams.get('status') ?? '';
-	const catParam = url.searchParams.get('cat') ?? '';
-	const cat = catParam === 'none' ? 'none' : Number(catParam) || 0;
-	const [allCategories, allTools] = await Promise.all([
+	const q = (url.searchParams.get('q') ?? '').trim(), catParam = url.searchParams.get('cat') ?? '';
+	const status = STATUSES.includes(url.searchParams.get('status') as ToolStatus) ? url.searchParams.get('status')! : '';
+	const cat = catParam === 'none' ? 'none' : String(Number(catParam) || '');
+	const [allCategories, tools, categories] = await Promise.all([
 		db.select({ id: category.cat_id, name: category.cat_name }).from(category).where(eq(category.org_id, org)).orderBy(category.cat_name),
-		// Every tool with the ids of its categories, for the tick boxes of the category popups.
-		db.select({ id: tool.tol_id, name: tool.tol_name, catIds: toolCategoryIds }).from(tool).where(eq(tool.org_id, org)).orderBy(tool.tol_name)
+		// The ids of its categories serve the category filter and the tick boxes of the category popups.
+		db.select({ id: tool.tol_id, name: tool.tol_name, vendor: tool.tol_vendor, categories: categoryNames, catIds: toolCategoryIds, status: tool.tol_status, risk: tool.tol_risk, dataClass: tool.tol_data_class })
+			.from(tool).where(eq(tool.org_id, org)).orderBy(tool.tol_name),
+		view === 'categories'
+			? db.select({ id: category.cat_id, name: category.cat_name, n: count(toolCategory.tol_id) })
+				.from(category).leftJoin(toolCategory, eq(toolCategory.cat_id, category.cat_id))
+				.where(eq(category.org_id, org)).groupBy(category.cat_id).orderBy(category.cat_name)
+			: []
 	]);
-	const base = { view, q, cat, status, statuses: STATUSES, allCategories, allTools };
-	if (q.length > 50) return { ...base, tools: [], categories: [], error: MSG.keyword };
-	if (view === 'categories') {
-		const categories = await db.select({ id: category.cat_id, name: category.cat_name, n: count(toolCategory.tol_id) })
-			.from(category).leftJoin(toolCategory, eq(toolCategory.cat_id, category.cat_id))
-			.where(and(eq(category.org_id, org), q ? ilike(category.cat_name, likeText(q)) : undefined))
-			.groupBy(category.cat_id).orderBy(category.cat_name);
-		return { ...base, tools: [], categories, error: '' };
-	}
-	const tools = await db
-		.select({ id: tool.tol_id, name: tool.tol_name, vendor: tool.tol_vendor, categories: categoryNames, status: tool.tol_status, risk: tool.tol_risk, dataClass: tool.tol_data_class })
-		.from(tool)
-		.where(and(eq(tool.org_id, org), q ? ilike(tool.tol_name, likeText(q)) : undefined, cat ? inCategory(cat) : undefined,
-			STATUSES.includes(status as ToolStatus) ? eq(tool.tol_status, status as ToolStatus) : undefined))
-		.orderBy(tool.tol_name);
-	return { ...base, tools, categories: [], error: tools.length ? '' : MSG.noTool };
+	return { view, q, cat, status, statuses: STATUSES, allCategories, tools, categories };
 };
 
 

@@ -1,13 +1,14 @@
 <script lang="ts">
 	// The catalogue of AI tools for every member. The Administrator also has a Categories tab to add and edit
 	// categories, in one popup. A click on a column heading sorts the tools; an Employee can request a tool from here.
+	// The page has every tool and filters the list itself, so a change shows at once without a server load.
 	import Banner from '#lib/Banner.svelte';
 	import Empty from '#lib/Empty.svelte';
 	import Field from '#lib/Field.svelte';
 	import Msg from '#lib/Msg.svelte';
 	import PageHead from '#lib/PageHead.svelte';
 	import TableWrap from '#lib/TableWrap.svelte';
-	import { liveFilter } from '#lib/live.ts';
+	import { keepInUrl } from '#lib/live.ts';
 	import { DATA_CLASSES, MSG, RISKS, isRequestable } from '#lib/rules.ts';
 	import { badge, icon } from '#lib/ui.ts';
 	import type { PageProps } from './$types';
@@ -15,7 +16,20 @@
 	let { data, form }: PageProps = $props();
 	const canRequest = $derived(data.user?.role === 'Employee');
 	const isAdmin = $derived(data.user?.role === 'Administrator');
-	const filtered = $derived(!!(data.q || data.cat || data.status));
+	// The filters start from the URL and change as the user types or chooses; keepInUrl writes them back into the URL.
+	let q = $derived(data.q), cat = $derived(data.cat), status = $derived(data.status);
+	const filtered = $derived(!!(q || cat || status));
+	const key = $derived(q.trim().toLowerCase());
+	const tooLong = $derived(key.length > 50);
+	const tools = $derived(tooLong ? [] : data.tools.filter((t) => (!key || t.name.toLowerCase().includes(key))
+		&& (!cat || (cat === 'none' ? !t.catIds.length : t.catIds.includes(Number(cat)))) && (!status || t.status === status)));
+	const categories = $derived(tooLong ? [] : data.categories.filter((c) => !key || c.name.toLowerCase().includes(key)));
+	$effect(() => keepInUrl(data.view === 'categories' ? { view: 'categories', q: q.trim() } : { q: q.trim(), cat, status }));
+	function read(e: Event) {
+		const f = new FormData(e.currentTarget as HTMLFormElement);
+		[q, cat, status] = ['q', 'cat', 'status'].map((k) => String(f.get(k) ?? ''));
+	}
+	const clear = (e: Event) => { e.preventDefault(); q = cat = status = ''; };
 
 	// Sorting on the page: by name first; a second click on the same heading turns the order round.
 	// Risk and data class sort by level (Low to High, Public to Restricted); empty values stay last.
@@ -30,7 +44,7 @@
 			if (v == null || v === '-') return null;
 			return key === 'risk' ? RISKS.indexOf(v as never) : key === 'dataClass' ? DATA_CLASSES.indexOf(v as never) : String(v);
 		};
-		return [...data.tools].sort((a, b) => {
+		return [...tools].sort((a, b) => {
 			const x = val(a), y = val(b);
 			if (x === null || y === null) return x === y ? 0 : x === null ? 1 : -1;
 			return dir * (typeof x === 'number' ? x - (y as number) : x.localeCompare(y as string));
@@ -54,7 +68,7 @@
 	{#if isAdmin}<button class="s-btn s-btn--primary" type="button" id="addCategory" onclick={() => open({ id: 0, name: '' })}>{@html icon('plus')}Add category</button>{/if}
 </PageHead>
 <Msg {form} />
-{#if data.error && data.error !== MSG.noTool}<Banner kind="error" title={data.error}><p>Use up to 50 characters.</p></Banner>{/if}
+{#if tooLong}<Banner kind="error" title={MSG.keyword}><p>Use up to 50 characters.</p></Banner>{/if}
 
 {#if isAdmin}
 	<nav class="tabs" aria-label="Catalogue views">
@@ -63,34 +77,34 @@
 	</nav>
 {/if}
 
-<form use:liveFilter data-sveltekit-reset="false" data-sveltekit-replacestate method="GET" class="s-filterbar" role="search" aria-label="Filter the catalogue" style="--_selects:{data.view === 'tools' ? 2 : 0}">
+<form oninput={read} onsubmit={(e) => e.preventDefault()} method="GET" class="s-filterbar" role="search" aria-label="Filter the catalogue" style="--_selects:{data.view === 'tools' ? 2 : 0}">
 	{#if data.view === 'categories'}<input type="hidden" name="view" value="categories" />{/if}
-	<Field id="q" label="Keyword"><input class="s-input" id="q" name="q" placeholder={data.view === 'tools' ? 'Tool name' : 'Category name'} value={data.q} /></Field>
+	<Field id="q" label="Keyword"><input class="s-input" id="q" name="q" placeholder={data.view === 'tools' ? 'Tool name' : 'Category name'} value={q} /></Field>
 	{#if data.view === 'tools'}
 		<Field id="cat" label="Category">
 			<select class="s-select" id="cat" name="cat">
 				<option value="">All categories</option>
-				<option value="none" selected={data.cat === 'none'}>None</option>
-				{#each data.allCategories as c (c.id)}<option value={c.id} selected={c.id === data.cat}>{c.name}</option>{/each}
+				<option value="none" selected={cat === 'none'}>None</option>
+				{#each data.allCategories as c (c.id)}<option value={c.id} selected={String(c.id) === cat}>{c.name}</option>{/each}
 			</select>
 		</Field>
 		<Field id="status" label="Status">
 			<select class="s-select" id="status" name="status">
 				<option value="">All statuses</option>
-				{#each data.statuses as s (s)}<option selected={s === data.status}>{s}</option>{/each}
+				{#each data.statuses as s (s)}<option selected={s === status}>{s}</option>{/each}
 			</select>
 		</Field>
 	{/if}
 	<div class="s-btn-row">
 		<button class="s-btn s-btn--secondary">{@html icon('filter')}Search</button>
-		{#if filtered}<a class="s-btn s-btn--tertiary" href={data.view === 'tools' ? '/catalogue' : '/catalogue?view=categories'}>Clear</a>{/if}
+		{#if filtered}<a class="s-btn s-btn--tertiary" onclick={clear} href={data.view === 'tools' ? '/catalogue' : '/catalogue?view=categories'}>Clear</a>{/if}
 	</div>
 </form>
 
 <section class="s-section">
 	{#if data.view === 'tools'}
-		{#if data.tools.length}
-			<div class="s-section__head"><p class="s-muted s-num">{data.tools.length} tool{data.tools.length === 1 ? '' : 's'}</p></div>
+		{#if tools.length}
+			<div class="s-section__head"><p class="s-muted s-num">{tools.length} tool{tools.length === 1 ? '' : 's'}</p></div>
 			<TableWrap label="AI tools" md>
 				<thead>
 					<tr>
@@ -118,16 +132,16 @@
 					{/each}
 				</tbody>
 			</TableWrap>
-		{:else if data.error === MSG.noTool}
-			<Empty title={data.error} text="Try another keyword, category or status. If the tool is new, request it.">
+		{:else if !tooLong}
+			<Empty title={MSG.noTool} text="Try another keyword, category or status. If the tool is new, request it.">
 				{#if canRequest}<a class="s-btn s-btn--secondary s-btn--sm" href="/requests/new">{@html icon('plus')}Request a tool</a>{/if}
 			</Empty>
 		{/if}
-	{:else if data.categories.length}
+	{:else if categories.length}
 		<TableWrap label="Categories">
 			<thead><tr><th scope="col">Category</th><th scope="col" class="is-num">Tools</th>{#if isAdmin}<th scope="col" class="s-actions"><span class="s-sr">Action</span></th>{/if}</tr></thead>
 			<tbody>
-				{#each data.categories as c (c.id)}
+				{#each categories as c (c.id)}
 					<tr>
 						<td data-label="Category"><a href="/catalogue?cat={c.id}">{c.name}</a></td><td data-label="Tools" class="is-num">{c.n}</td>
 						{#if isAdmin}<td data-label="Action" class="s-actions"><button class="s-btn s-btn--secondary s-btn--sm" type="button" onclick={() => open(c)}>{@html icon('edit')}Edit</button></td>{/if}
@@ -135,7 +149,7 @@
 				{/each}
 			</tbody>
 		</TableWrap>
-	{:else}
+	{:else if !tooLong}
 		<Empty ic="tag" title="No category found" text="Try another keyword." />
 	{/if}
 </section>
@@ -156,7 +170,7 @@
 						<legend class="s-label" style="margin-bottom:6px">Tools in this category</legend>
 						<p class="s-muted" style="font-size:13px">A tool can be in many categories. A tool in no category shows "-".</p>
 						<div class="s-checklist" role="group">
-							{#each data.allTools as t (t.id)}
+							{#each data.tools as t (t.id)}
 								{@const also = others(t.catIds, editing.id)}
 								<label class="s-check">
 									<input type="checkbox" name="tools" value={t.id} checked={t.catIds.includes(editing.id)} />

@@ -1,7 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { count, eq, ilike, sql } from 'drizzle-orm';
+import { count, eq, sql } from 'drizzle-orm';
 import { db, organization, user } from '#lib/server/db/index.ts';
-import { MSG, field, isLength, likeText } from '#lib/rules.ts';
+import { MSG, field, isLength } from '#lib/rules.ts';
 import { MANAGE_COOKIE } from '#lib/server/auth.ts';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -9,6 +9,7 @@ import type { Actions, PageServerLoad } from './$types';
 const owner = (locals: App.Locals) => { if (locals.user?.role !== 'Owner' && !locals.user?.asOwner) redirect(303, '/'); };
 
 // The Owner sees every organization, its size and its Administrators. To change the data inside one, the Owner manages it.
+// The page filters the list by name in the browser; the keyword in the URL sets the first view.
 export const load: PageServerLoad = async ({ locals, url }) => {
 	owner(locals);
 	const q = (url.searchParams.get('q') ?? '').trim();
@@ -18,9 +19,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			admins: sql<string>`coalesce(string_agg(${user.usr_email}, ', ') filter (where ${user.usr_role} = 'Administrator'), '-')`
 		})
 		.from(organization).leftJoin(user, eq(user.org_id, organization.org_id))
-		.where(q ? ilike(organization.org_name, likeText(q)) : undefined)
 		.groupBy(organization.org_id).orderBy(organization.org_name);
-	return { q, orgs, totals: { orgs: orgs.length, active: orgs.filter((o) => o.active).length, users: orgs.reduce((n, o) => n + o.users, 0) } };
+	return { q, orgs };
 };
 
 export const actions: Actions = {

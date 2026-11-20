@@ -4,12 +4,17 @@
 	import PageHead from '#lib/PageHead.svelte';
 	import Stats from '#lib/Stats.svelte';
 	import TableWrap from '#lib/TableWrap.svelte';
-	import { liveFilter } from '#lib/live.ts';
+	import { keepInUrl } from '#lib/live.ts';
 	import { fmtDate } from '#lib/rules.ts';
 	import { badge, icon } from '#lib/ui.ts';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
+
+	// The page has every organization and filters the list by name itself, so a change shows at once.
+	let q = $derived(data.q);
+	const orgs = $derived(data.orgs.filter((o) => o.name.toLowerCase().includes(q.trim().toLowerCase())));
+	$effect(() => keepInUrl({ q: q.trim() }));
 
 	// Deactivating or reactivating an organization changes who can sign in, so it asks first.
 	function confirmToggle(e: SubmitEvent, o: { name: string; users: number; active: boolean }) {
@@ -26,24 +31,24 @@
 <PageHead title="Organizations" desc="Every organization on SATAR. Rename one, or manage it to change its users, departments and catalogue." />
 <Msg {form} />
 <Stats items={[
-	{ label: 'Organizations', value: data.totals.orgs, icon: 'building' },
-	{ label: 'Active', value: data.totals.active, icon: 'check-circle' },
-	{ label: 'Users in total', value: data.totals.users, icon: 'users' }
+	{ label: 'Organizations', value: orgs.length, icon: 'building' },
+	{ label: 'Active', value: orgs.filter((o) => o.active).length, icon: 'check-circle' },
+	{ label: 'Users in total', value: orgs.reduce((n, o) => n + o.users, 0), icon: 'users' }
 ]} />
 <section class="s-section">
-	<form use:liveFilter data-sveltekit-reset="false" data-sveltekit-replacestate method="GET" class="s-search" role="search">
+	<form onsubmit={(e) => e.preventDefault()} method="GET" class="s-search" role="search">
 		<div class="s-input-group">
 			<span class="s-input-lead">{@html icon('search')}</span>
 			<label class="s-sr" for="q">Search organizations by name</label>
-			<input class="s-input" id="q" name="q" placeholder="Search by name" value={data.q} />
+			<input class="s-input" id="q" name="q" placeholder="Search by name" value={q} oninput={(e) => (q = e.currentTarget.value)} />
 		</div>
 		<button class="s-btn s-btn--secondary">Search</button>
 	</form>
-	{#if data.orgs.length}
+	{#if orgs.length}
 		<TableWrap label="Organizations" md>
 			<thead><tr><th scope="col">Organization</th><th scope="col">Administrators</th><th scope="col" class="is-num">Users</th><th scope="col">Created</th><th scope="col">Status</th><th scope="col" class="s-actions"><span class="s-sr">Action</span></th></tr></thead>
 			<tbody>
-				{#each data.orgs as o (o.id)}
+				{#each orgs as o (o.id)}
 					<tr>
 						<td data-label="Organization">
 							<form method="POST" action="?/rename" class="rename" style="justify-content:flex-start" novalidate>
