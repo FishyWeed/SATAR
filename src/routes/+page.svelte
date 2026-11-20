@@ -159,7 +159,7 @@
 	<div class="window" id="window">
 		<div class="window__frame">
 			<div class="window__bar" aria-hidden="true"><span></span><span></span><span></span><b>satar.my/catalogue</b></div>
-			<img src="/img/shots/register-desktop.webp" width="2560" height="1600" alt="The SATAR catalogue: a table of tools with their status, risk level and allowed data class, and a filter bar to search by keyword and category." loading="lazy" />
+			<img src="/img/shots/register-desktop.webp" width="2560" height="1600" alt="The SATAR catalogue: a table of tools with their status, risk level and allowed data class, and a filter bar to search by keyword, category and status." loading="lazy" />
 		</div>
 		<div class="window__glint" aria-hidden="true"></div>
 	</div>
